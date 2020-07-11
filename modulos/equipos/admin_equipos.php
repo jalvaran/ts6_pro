@@ -71,7 +71,7 @@ $css->PageInit($myTitulo);
                             <div class="page-search md" >
                                 <input id="TxtBusquedas" type="text" placeholder="Buscar...." style="background-color:white">
                             </div>
-                            <button id="btnFrmNuevaEmpresa" class="btn btn-primary btn-gradient btn-pill m-1">Crear <i class="fa fa-plus-circle"></i></button>
+                            <button id="btnFrmNuevoRegistro" class="btn btn-primary btn-gradient btn-pill m-1">Crear <i class="fa fa-plus-circle"></i></button>
                             <button id="btnActualizarListado" class="btn btn-success btn-gradient btn-pill m-1"><i class="fa fa-sync"></i></button>
 
                         </div>  
@@ -89,7 +89,7 @@ $css->PageInit($myTitulo);
     $css->Cdiv();
         
 $css->PageFin();
-print('<script src="jsPages/admin_empresas.js"></script>');
+print('<script src="jsPages/admin_equipos.js"></script>');
 $css->Cbody();
 $css->Chtml();
 

@@ -363,6 +363,9 @@ public function ShowColums($Tabla){
         if($TipoCampo=="int" or $TipoCampo=="dou" or $TipoCampo=="big" or $TipoCampo=="flo"){
             $Nombres["TypeField"][$i]='number';
         }
+        if($TipoCampo=="dat"){
+            $Nombres["TypeField"][$i]='date';
+        }
         $i++;
         
     }

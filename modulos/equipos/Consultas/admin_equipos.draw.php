@@ -14,14 +14,13 @@ if( !empty($_REQUEST["Accion"]) ){
     $obCon = new conexion($idUser);
     
     switch ($_REQUEST["Accion"]) {
-        case 1: //Dibuja el formulario para crear una empresa
-            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
-            $css->frm_form("frm_empresapro", "Empresa","empresapro",$empresa_id, "");
-        break; //Fin caso 1
         
-        case 2:// dibujo el listado de las empresas
+        case 1:// dibujo el listado de las maquinas
             
-            $Limit=5;
+            $Limit=20;
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
+            $db=$DatosEmpresa["db"];
             $Page=$obCon->normalizar($_REQUEST["Page"]);
             $NumPage=$obCon->normalizar($_REQUEST["Page"]);
             if($Page==''){
@@ -31,28 +30,29 @@ if( !empty($_REQUEST["Accion"]) ){
             $Busquedas=$obCon->normalizar($_REQUEST["Busquedas"]);
             $BusquedasGenerales=$obCon->normalizar($_REQUEST["BusquedasGenerales"]);
             
-            $Condicion=" WHERE ID>0 ";
+            $Condicion=" WHERE ID<>'' ";
             
             if($Busquedas<>''){
-                $Condicion.=" AND ( t1.RazonSocial like '%$Busquedas%' or t1.NIT like '%$Busquedas%' or t1.Telefono like '%$Busquedas%')";
+                $Condicion.=" AND ( t1.Nombre like '%$Busquedas%' or t1.Codigo = '%$Busquedas%' or t1.Marca like '%$Busquedas%')";
             }
             
             if($BusquedasGenerales<>''){
-                $Condicion.=" AND ( t1.RazonSocial like '%$BusquedasGenerales%' or t1.NIT like '%$BusquedasGenerales%' or t1.Telefono like '%$BusquedasGenerales%')";
+                $Condicion.=" AND ( t1.Nombre like '%$BusquedasGenerales%' or t1.Codigo = '%$BusquedasGenerales%' or t1.Marca like '%$BusquedasGenerales%')";
             }
             
             $PuntoInicio = ($Page * $Limit) - $Limit;
             
             $sql = "SELECT COUNT(ID) as Items 
-                   FROM empresapro t1 $Condicion;";
+                   FROM equipos_maquinas t1 $Condicion;";
             
-            $Consulta=$obCon->Query($sql);
+            $Consulta=$obCon->QueryExterno($sql, HOST, USER, PW, $db, "");
+            
             $totales = $obCon->FetchAssoc($Consulta);
             $ResultadosTotales = $totales['Items'];
                         
             $sql="SELECT t1.* 
-                  FROM empresapro t1 $Condicion ORDER BY ID DESC LIMIT $PuntoInicio,$Limit;";
-            $Consulta=$obCon->Query($sql);
+                  FROM equipos_maquinas t1 $Condicion ORDER BY ID DESC LIMIT $PuntoInicio,$Limit;";
+            $Consulta=$obCon->QueryExterno($sql, HOST, USER, PW, $db, "");
                     
             $css->div("", "box-body no-padding", "", "", "", "", "");
                 $css->div("", "mailbox-controls", "", "", "", "", "");
@@ -138,13 +138,14 @@ if( !empty($_REQUEST["Accion"]) ){
                         print('<thead>
                                     <tr>
                                         <th>Acciones</th>
-                                        <th>ID</th>
-                                        <th>RazonSocial</th>
-                                        <th>NIT</th>
-                                        <th>DV</th>
-                                        <th>Dirección</th>
-                                        <th>Telefonos</th>
-                                        <th>Base de datos</th>
+                                        <th>Codigo</th>
+                                        <th>Nombre</th>
+                                        <th>Marca</th>
+                                        <th>Modelo</th>
+                                        <th>Serie</th>
+                                        <th>Fabricacion</th>
+                                        <th>Instalacion</th>
+                                        <th>Especificaciones</th>
                                     </tr>
                                 </thead>');
                         print('<tbody>');
@@ -154,30 +155,34 @@ if( !empty($_REQUEST["Accion"]) ){
                                 
                                 print('<tr>');
                                     print("<td>");
-                                        print('<a onclick="frm_crear_empresa(`'.$idItem.'`)" ><i class="icon-pencil text-info"></i></a>');
+                                        print('<a onclick="frm_crear_editar_registro(`'.$idItem.'`)" ><i class="icon-pencil text-info"></i></a>');
                                     print("</td>");
                                     print("<td class='mailbox-name'>");
-                                        print($RegistrosTabla["ID"]);
+                                        print($RegistrosTabla["Codigo"]);
                                     print("</td>");
                                     print("<td class='mailbox-subject text-primary'>");
-                                        print("<strong>".$RegistrosTabla["RazonSocial"]."</strong>");
+                                        print("<strong>".$RegistrosTabla["Nombre"]."</strong>");
                                     print("</td>");
                                     print("<td class='mailbox-subject'>");
-                                        print($RegistrosTabla["NIT"]);
+                                        print($RegistrosTabla["Marca"]);
                                     print("</td>");
                                     print("<td class='mailbox-subject text-success'>");
-                                        print($RegistrosTabla["DigitoVerificacion"]);
+                                        print($RegistrosTabla["Modelo"]);
                                     print("</td>");
                                     print("<td class='mailbox-subject'>");
-                                        print(" <strong>".$RegistrosTabla["Direccion"]."</strong>");
+                                        print(" <strong>".$RegistrosTabla["NumeroSerie"]."</strong>");
                                     print("</td>");
                                     
                                     print("<td class='mailbox-subject'>");
-                                        print(($RegistrosTabla["Telefono"]." || ".$RegistrosTabla["Celular"]));
+                                        print(($RegistrosTabla["FechaFabricacion"]));
                                     print("</td>");
                                     
                                     print("<td class='mailbox-subject text-flickr'>");
-                                        print(($RegistrosTabla["db"]));
+                                        print(($RegistrosTabla["FechaInstalacion"]));
+                                    print("</td>");
+                                    
+                                    print("<td class='mailbox-subject'>");
+                                        print(($RegistrosTabla["Especificaciones"]));
                                     print("</td>");
                                     
                                 print('</tr>');
@@ -191,7 +196,28 @@ if( !empty($_REQUEST["Accion"]) ){
             
             
             
-        break; //Fin caso 2   
+        break; //Fin caso 1
+        
+        case 4: //Dibuja el formulario para crear o editar un registro segun el listado seleccionado y la empresa
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
+            $db=$DatosEmpresa["db"];
+            $edit_id=$obCon->normalizar($_REQUEST["edit_id"]);
+            $tipo_equipo=$obCon->normalizar($_REQUEST["tipo_equipo"]);
+            if($tipo_equipo==1){
+                $tab=$db.".equipos_maquinas";
+                $title="Maquinas";
+            }
+            if($tipo_equipo==2){
+                $tab=$db.".equipos_componentes";
+                $title="Componentes";
+            }
+            if($tipo_equipo==3){
+                $tab=$db.".equipos_partes";
+                $title="Partes";
+            }
+            $css->frm_form("frm_equipos", $title,$tab,$edit_id, "");
+        break; //Fin caso 4
                 
     }
     

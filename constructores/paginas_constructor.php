@@ -2310,6 +2310,7 @@ class PageConstruct extends html_estruct_class{
         }
         
         function frm_form($form_id,$form_title,$tab,$idEdit,$data_extra){
+            
             $Columnas=$this->obCon->ShowColums($tab);
             $data_reg=$this->obCon->DevuelveValores($tab, "ID", $idEdit);
             //print_r($Columnas);
@@ -2340,13 +2341,19 @@ class PageConstruct extends html_estruct_class{
                     if($Index=='PRI' and $Extra=='auto_increment'){
                         continue;
                     }
+                    
 
                     if($visible==1){
                         $valueField=$data_reg[$Nombre];
+                        $disabled="";
+                        if($Index=='PRI' and $valueField==''){
+                            $valueField=$this->obCon->getUniqId();
+                            $disabled="disabled";
+                        }
                         print('<div class="col-md-4">');
                             print('<div class="form-group">
                                     <label class="col-form-label">'.$Nombre.'</label>
-                                    <input id="'.$NombreCol.'" value="'.$valueField.'" type="'.$TypeField.'" class="form-control ts_form" placeholder="'.$Nombre.'">
+                                    <input '.$disabled.' id="'.$NombreCol.'" value="'.$valueField.'" type="'.$TypeField.'" class="form-control ts_form" placeholder="'.$Nombre.'">
                                     <span class="form-text">'.$Comment.'</span> 
                                 </div>');
                         print('</div>');

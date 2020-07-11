@@ -11,31 +11,29 @@ function validateDate($date, $format = 'Y-m-d H:i:s'){
     return $d && $d->format($format) == $date;
 }
 
-include_once("../clases/admin_empresas.class.php");
+include_once("../clases/admin_equipos.class.php");
 
 if( !empty($_REQUEST["Accion"]) ){
     
-    $obCon=new adminEmpresas($idUser);
+    $obCon=new adminEquipos($idUser);
     
     switch ($_REQUEST["Accion"]) {
         
-        case 1: //Crear una empresa
+        case 1: //Crear una maquina
             
-            //$jsonForm= $_REQUEST["jsonFormulario"];                    
-            //parse_str($jsonForm,$DatosFormulario);
-            $DatosFormulario["RazonSocial"]=$obCon->normalizar($_REQUEST["RazonSocial"]);
-            $DatosFormulario["NIT"]=$obCon->normalizar($_REQUEST["NIT"]);
-            $DatosFormulario["Direccion"]=$obCon->normalizar($_REQUEST["Direccion"]);
-            $DatosFormulario["Telefono"]=$obCon->normalizar($_REQUEST["Telefono"]);
-            $DatosFormulario["Celular"]=$obCon->normalizar($_REQUEST["Celular"]);
-            $DatosFormulario["Ciudad"]=$obCon->normalizar($_REQUEST["Ciudad"]);
-            $DatosFormulario["CodigoDaneCiudad"]=$obCon->normalizar($_REQUEST["CodigoDaneCiudad"]);
-            $DatosFormulario["Regimen"]=$obCon->normalizar($_REQUEST["Regimen"]);
-            $DatosFormulario["TipoPersona"]=$obCon->normalizar($_REQUEST["TipoPersona"]);
-            $DatosFormulario["TipoDocumento"]=$obCon->normalizar($_REQUEST["TipoDocumento"]);
-            $DatosFormulario["Email"]=$obCon->normalizar($_REQUEST["Email"]);
-            $DatosFormulario["WEB"]=$obCon->normalizar($_REQUEST["WEB"]);
+            $DatosFormulario["ID"]=$obCon->normalizar($_REQUEST["ID"]);
+            $DatosFormulario["Codigo"]=$obCon->normalizar($_REQUEST["Codigo"]);
+            $DatosFormulario["Nombre"]=$obCon->normalizar($_REQUEST["Nombre"]);
+            $DatosFormulario["Marca"]=$obCon->normalizar($_REQUEST["Marca"]);
+            $DatosFormulario["Modelo"]=$obCon->normalizar($_REQUEST["Modelo"]);
+            $DatosFormulario["NumeroSerie"]=$obCon->normalizar($_REQUEST["NumeroSerie"]);
+            $DatosFormulario["FechaFabricacion"]=$obCon->normalizar($_REQUEST["FechaFabricacion"]);
+            $DatosFormulario["FechaInstalacion"]=$obCon->normalizar($_REQUEST["FechaInstalacion"]);
+            $DatosFormulario["Especificaciones"]=$obCon->normalizar($_REQUEST["Especificaciones"]);
+            
             $edit_id=$obCon->normalizar($_REQUEST["edit_id"]); 
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]); 
+            $tipo_equipo=$obCon->normalizar($_REQUEST["tipo_equipo"]); 
             
             foreach ($DatosFormulario as $key => $value) {
                 
@@ -43,27 +41,15 @@ if( !empty($_REQUEST["Accion"]) ){
                     exit("E1;El campo $key no puede estar vacío;$key");
                 }
             }
-            
-            if(!is_numeric($DatosFormulario["NIT"])){
-                exit("E1;El campo NIT debe contener un valor numerico positivo;NIT");
-            }
-            if(!is_numeric($DatosFormulario["CodigoDaneCiudad"])){
-                exit("E1;El campo CodigoDaneCiudad debe contener un valor numerico positivo;CodigoDaneCiudad");
-            }
-            if(!is_numeric($DatosFormulario["TipoDocumento"])){
-                exit("E1;El campo TipoDocumento debe contener un valor numerico positivo;TipoDocumento");
-            }
-            $DatosFormulario["DigitoVerificacion"]=$obCon->CalcularDV($DatosFormulario["NIT"]);
-            $id=$obCon->ObtenerMAX("empresapro", "ID", 1, "")+1;
-            
-            $DatosFormulario["db"]="techno_ts6_pro_".$id;
+            $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
+            $db=$DatosEmpresa["db"];
             if($edit_id==""){
-                $sql=$obCon->getSQLInsert("empresapro", $DatosFormulario); 
+                $sql=$obCon->getSQLInsert("equipos_maquinas", $DatosFormulario); 
             }else{
-                $sql=$obCon->getSQLUpdate("empresapro", $DatosFormulario);
+                $sql=$obCon->getSQLUpdate("equipos_maquinas", $DatosFormulario);
                 $sql.=" WHERE ID='$edit_id'";
             }
-            $obCon->Query($sql);
+            $obCon->QueryExterno($sql, HOST, USER, PW, $db, "");
             print("OK;Datos Guardados");
             
         break;//Fin caso 1

@@ -1,5 +1,5 @@
 /*
- * javascript para controlar los eventos de creacion de empresas
+ * javascript para controlar los eventos de la administracion de los equipos
  */
 
 /*
@@ -10,36 +10,36 @@
  * @type type
  */
 
-$('#btnFrmNuevaEmpresa').on('click',function () {        
+$('#btnFrmNuevoRegistro').on('click',function () {        
 
-    frm_crear_empresa();
+    frm_crear_editar_registro();
 
 });
 
 $('#btnActualizarListado').on('click',function () {        
 
-    dibujeListadoEmpresas();
+    dibujeListadoSegunID();
 
 });
 
 $("#txtBusquedasGenerales").keypress(function(e) {
         var code = (e.keyCode ? e.keyCode : e.which);
         if(code==13){
-            dibujeListadoEmpresas(1);   
+            dibujeListadoSegunID(1);   
         }
     });
     
     $("#TxtBusquedas").keypress(function(e) {
         var code = (e.keyCode ? e.keyCode : e.which);
         if(code==13){
-            dibujeListadoEmpresas(1);   
+            dibujeListadoSegunID(1);   
         }
     });
     
 function add_events_frms(){
-    $('#btn_frm_empresapro').on('click',function () { 
+    $('#btn_frm_equipos').on('click',function () { 
         
-        ConfirmarCreacionEmpresa();
+        ConfirmarCrearEditar();
         
         
     });
@@ -72,23 +72,41 @@ function CambiePagina(Funcion,Page=""){
         }
     }
     if(Funcion==1){
-        dibujeListadoEmpresas(Page);
+        dibujeListadoSegunID(Page);
     }
     
     
 }
 
 
+function dibujeListadoSegunID(Page=1){
+    var listado_id = document.getElementById('tipo_equipo').value;
+    if(listado_id==1){
+        dibuja_listado_maquinas(Page);
+    }
+    if(listado_id==2){
+        dibuja_listado_componentes(Page);
+    }
+    if(listado_id==3){
+        dibuja_listado_partes(Page);
+    }
+    
+}
+
 /*
  * Funciones generales para crear formularios
  */
 
-function frm_crear_empresa(empresa_id=''){
+function frm_crear_editar_registro(edit_id=''){
     var idDiv="DivListado";
-    urlQuery='Consultas/admin_empresas.draw.php';    
+    var empresa_id=document.getElementById('empresa_id').value;
+    var tipo_equipo=document.getElementById('tipo_equipo').value;
+    urlQuery='Consultas/admin_equipos.draw.php';    
     var form_data = new FormData();
-        form_data.append('Accion', 1);  
-        form_data.append('empresa_id', empresa_id);       
+        form_data.append('Accion', 4);  
+        form_data.append('edit_id', edit_id);
+        form_data.append('tipo_equipo', tipo_equipo);
+        form_data.append('empresa_id', empresa_id);
        $.ajax({// se arma un objecto por medio de ajax  
         url: urlQuery,// se indica donde llegara la informacion del objecto
         
@@ -121,9 +139,9 @@ function frm_crear_empresa(empresa_id=''){
  * Funciones generales para guargar o editar registros
  */
 
-function ConfirmarCreacionEmpresa(){
+function ConfirmarCrearEditar(){
     swal({   
-            title: "Seguro que desea Realizar guardar?",   
+            title: "Seguro que desea guardar?",   
             //text: "You will not be able to recover this imaginary file!",   
             type: "warning",   
             showCancelButton: true,  
@@ -134,8 +152,13 @@ function ConfirmarCreacionEmpresa(){
             closeOnConfirm: true,   
             closeOnCancel: true 
         }, function(isConfirm){   
-            if (isConfirm) {    
-                GuardarEmpresa();
+            if (isConfirm) {   
+                
+                var lista = document.getElementById("tipo_equipo").value;
+                if(lista==1){
+                    GuardarEditarRegistroMaquina();
+                }
+                
                               
             } else {     
                 swal("Cancelado", "Se ha cancelado el proceso :)", "error");   
@@ -143,47 +166,42 @@ function ConfirmarCreacionEmpresa(){
         });
 }
 
-function GuardarEmpresa(){
+function GuardarEditarRegistroMaquina(){
     
-    var idDiv="DivListado";
-    urlQuery='procesadores/admin_empresas.process.php';    
+    urlQuery='procesadores/admin_equipos.process.php';    
     
-    var btnEnviar = "btn_frm_empresapro";
+    var btnEnviar = "btn_frm_equipos";
     document.getElementById(btnEnviar).disabled=true;
     document.getElementById(btnEnviar).value="Enviando...";
-    var edit_id=$("#btn_frm_empresapro").data("edit_id");
+    var edit_id=$("#btn_frm_equipos").data("edit_id");
+    var empresa_id=document.getElementById('empresa_id').value;
+    var tipo_equipo=document.getElementById('tipo_equipo').value;
     
-    var RazonSocial=document.getElementById('RazonSocial').value;
-    var NIT=document.getElementById('NIT').value;
-    var Direccion=document.getElementById('Direccion').value;
-    var Telefono=document.getElementById('Telefono').value;
-    var Celular=document.getElementById('Celular').value;
-    var Ciudad=document.getElementById('Ciudad').value;
-    var CodigoDaneCiudad=document.getElementById('CodigoDaneCiudad').value;
-    var Regimen=document.getElementById('Regimen').value;
-    var TipoPersona=document.getElementById('TipoPersona').value;
-    var TipoDocumento=document.getElementById('TipoDocumento').value;    
-    var Email=document.getElementById('Email').value;
-    var WEB=document.getElementById('WEB').value;
-    
-    //var jsonFormulario=$('.ts_form').serialize();
-      //  console.log("Datos: "+jsonFormulario);
+    var ID=document.getElementById('ID').value;
+    var Codigo=document.getElementById('Codigo').value;
+    var Nombre=document.getElementById('Nombre').value;
+    var Marca=document.getElementById('Marca').value;
+    var Modelo=document.getElementById('Modelo').value;
+    var NumeroSerie=document.getElementById('NumeroSerie').value;
+    var FechaFabricacion=document.getElementById('FechaFabricacion').value;
+    var FechaInstalacion=document.getElementById('FechaInstalacion').value;
+    var Especificaciones=document.getElementById('Especificaciones').value;
+     
     var form_data = new FormData();
         form_data.append('Accion', '1');  
         form_data.append('edit_id', edit_id);
-        form_data.append('RazonSocial', RazonSocial);
-        form_data.append('NIT', NIT);
-        form_data.append('Direccion', Direccion);
-        form_data.append('Telefono', Telefono);
-        form_data.append('Celular', Celular);
-        form_data.append('Ciudad', Ciudad);
-        form_data.append('CodigoDaneCiudad', CodigoDaneCiudad);
-        form_data.append('Regimen', Regimen);
-        form_data.append('TipoPersona', TipoPersona);
-        form_data.append('TipoDocumento', TipoDocumento);
-        form_data.append('Email', Email);
-        form_data.append('WEB', WEB);
-               
+        form_data.append('ID', ID);
+        form_data.append('Codigo', Codigo);
+        form_data.append('Nombre', Nombre);
+        form_data.append('Marca', Marca);
+        form_data.append('Modelo', Modelo);
+        form_data.append('NumeroSerie', NumeroSerie);
+        form_data.append('FechaFabricacion', FechaFabricacion);
+        form_data.append('FechaInstalacion', FechaInstalacion);
+        form_data.append('Especificaciones', Especificaciones);
+        form_data.append('empresa_id', empresa_id);
+        form_data.append('tipo_equipo', tipo_equipo);
+                       
         $.ajax({
         url: urlQuery,
         //dataType: 'json',
@@ -199,7 +217,7 @@ function GuardarEmpresa(){
             if(respuestas[0]=="OK"){ 
                 toastr.success(respuestas[1]);
                 
-                dibujeListadoEmpresas();
+                dibujeListadoSegunID();
                 
             }else if(respuestas[0]=="E1"){  
                 toastr.error(respuestas[1],'',2000);
@@ -223,15 +241,17 @@ function GuardarEmpresa(){
  * Funciones generales para listar tablas
  */
 
-function dibujeListadoEmpresas(Page=1){
+function dibuja_listado_maquinas(Page=1){
     var idDiv="DivListado";
-    urlQuery='Consultas/admin_empresas.draw.php';  
+    urlQuery='Consultas/admin_equipos.draw.php';  
+    var empresa_id=document.getElementById('empresa_id').value;
     var Busquedas=document.getElementById('TxtBusquedas').value;
     var BusquedasGenerales=document.getElementById('txtBusquedasGenerales').value;
     var form_data = new FormData();
-        form_data.append('Accion', 2);  
+        form_data.append('Accion', 1);  
         form_data.append('Page', Page);
-        form_data.append('Busquedas', Busquedas);   
+        form_data.append('Busquedas', Busquedas); 
+        form_data.append('empresa_id', empresa_id);  
         form_data.append('BusquedasGenerales', BusquedasGenerales);   
        $.ajax({// se arma un objecto por medio de ajax  
         url: urlQuery,// se indica donde llegara la informacion del objecto
@@ -262,5 +282,5 @@ function dibujeListadoEmpresas(Page=1){
 }
 
 
-dibujeListadoEmpresas();
+dibujeListadoSegunID();
 
