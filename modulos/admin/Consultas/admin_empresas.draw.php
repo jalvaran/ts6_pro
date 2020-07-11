@@ -28,15 +28,17 @@ if( !empty($_REQUEST["Accion"]) ){
                 $Page=1;
                 $NumPage=1;
             }
-            $Busquedas=$obCon->normalizar($_REQUEST["Busquedas"]);
+            //$Busquedas=$obCon->normalizar($_REQUEST["Busquedas"]);
             $BusquedasGenerales=$obCon->normalizar($_REQUEST["BusquedasGenerales"]);
             
             $Condicion=" WHERE ID>0 ";
-            
+            /*
             if($Busquedas<>''){
                 $Condicion.=" AND ( t1.RazonSocial like '%$Busquedas%' or t1.NIT like '%$Busquedas%' or t1.Telefono like '%$Busquedas%')";
             }
             
+             * 
+             */
             if($BusquedasGenerales<>''){
                 $Condicion.=" AND ( t1.RazonSocial like '%$BusquedasGenerales%' or t1.NIT like '%$BusquedasGenerales%' or t1.Telefono like '%$BusquedasGenerales%')";
             }

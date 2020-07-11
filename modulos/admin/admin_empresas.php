@@ -42,9 +42,7 @@ $css->PageInit($myTitulo);
                             <span class="panel-title-text">Lista de Empresas Creadas</span>
                         </div>
                         <div class="panel-action panel-action-background">
-                            <div class="page-search md" >
-                                <input id="TxtBusquedas" type="text" placeholder="Buscar una empresa" style="background-color:white">
-                            </div>
+                            
                             <button id="btnFrmNuevaEmpresa" class="btn btn-primary btn-gradient btn-pill m-1">Crear <i class="fa fa-plus-circle"></i></button>
                             <button id="btnActualizarListado" class="btn btn-success btn-gradient btn-pill m-1"><i class="fa fa-sync"></i></button>
 

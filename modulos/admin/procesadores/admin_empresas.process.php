@@ -44,13 +44,13 @@ if( !empty($_REQUEST["Accion"]) ){
                 }
             }
             
-            if(!is_numeric($DatosFormulario["NIT"])){
+            if(!is_numeric($DatosFormulario["NIT"]) and $DatosFormulario["NIT"]>0){
                 exit("E1;El campo NIT debe contener un valor numerico positivo;NIT");
             }
-            if(!is_numeric($DatosFormulario["CodigoDaneCiudad"])){
+            if(!is_numeric($DatosFormulario["CodigoDaneCiudad"]) and $DatosFormulario["NIT"]>0){
                 exit("E1;El campo CodigoDaneCiudad debe contener un valor numerico positivo;CodigoDaneCiudad");
             }
-            if(!is_numeric($DatosFormulario["TipoDocumento"])){
+            if(!is_numeric($DatosFormulario["TipoDocumento"]) and $DatosFormulario["NIT"]>0){
                 exit("E1;El campo TipoDocumento debe contener un valor numerico positivo;TipoDocumento");
             }
             $DatosFormulario["DigitoVerificacion"]=$obCon->CalcularDV($DatosFormulario["NIT"]);

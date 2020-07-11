@@ -29,12 +29,7 @@ $("#txtBusquedasGenerales").keypress(function(e) {
         }
     });
     
-    $("#TxtBusquedas").keypress(function(e) {
-        var code = (e.keyCode ? e.keyCode : e.which);
-        if(code==13){
-            dibujeListadoEmpresas(1);   
-        }
-    });
+    
     
 function add_events_frms(){
     $('#btn_frm_empresapro').on('click',function () { 
@@ -226,12 +221,12 @@ function GuardarEmpresa(){
 function dibujeListadoEmpresas(Page=1){
     var idDiv="DivListado";
     urlQuery='Consultas/admin_empresas.draw.php';  
-    var Busquedas=document.getElementById('TxtBusquedas').value;
+    //var Busquedas=document.getElementById('TxtBusquedas').value;
     var BusquedasGenerales=document.getElementById('txtBusquedasGenerales').value;
     var form_data = new FormData();
         form_data.append('Accion', 2);  
         form_data.append('Page', Page);
-        form_data.append('Busquedas', Busquedas);   
+        //form_data.append('Busquedas', Busquedas);   
         form_data.append('BusquedasGenerales', BusquedasGenerales);   
        $.ajax({// se arma un objecto por medio de ajax  
         url: urlQuery,// se indica donde llegara la informacion del objecto
