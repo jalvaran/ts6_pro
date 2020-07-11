@@ -43,7 +43,13 @@ class PageConstruct extends html_estruct_class{
                         <link rel="stylesheet" href="../../assets/plugin/switchery/switchery.min.css" />
                         <!-- Morris CSS -->
                         <link rel="stylesheet" href="../../assets/plugin/morris/morris.css" />
+                        <!-- Sweetalert CSS -->
+                        <link rel="stylesheet" href="../../assets/plugin/sweetalert/sweetalert.css" />
+                        <!-- alertify CSS 
+                        <link rel="stylesheet" href="../../assets/plugin/alertify/themes/alertify.core.css" />
+                        <link rel="stylesheet" href="../../assets/plugin/alertify/themes/alertify.default.css" id="toggleCSS" />  -->
                         <!-- Custom Stylesheet -->
+                        
                         <link rel="stylesheet" href="../../dist/css/style.css" />
                     </head>
                     <body>
@@ -81,7 +87,7 @@ class PageConstruct extends html_estruct_class{
                         <div class="col-sm-6 text-right">
                             <div class="breadcrumbs">
                                 <ul>
-                                   
+                                   <a href="../../modulos/menu/Menu.php" target="_self" > Menú <button class="fa fa-home" style="font-size:30px;cursor:pointer"> </button></a>
                                 </ul>
                             </div>
                         </div>
@@ -114,7 +120,7 @@ class PageConstruct extends html_estruct_class{
                             <a><i class="fas fa-expand"></i></a>
                         </div>
                         <div class="page-search">
-                            <input type="text" placeholder="Busqueda....">
+                            <input id="txtBusquedasGenerales" type="text" placeholder="Busqueda....">
                         </div>
                     </div>
                     <div class="col-8 col-md-5 page-hdr-right">
@@ -945,11 +951,14 @@ class PageConstruct extends html_estruct_class{
                 <script type="text/javascript" src="../../assets/plugin/web-ticker/jquery.webticker.min.js"></script>
                 <!-- Sparkline Plugin -->
                 <script type="text/javascript" src="../../assets/plugin/echarts/echarts.js"></script>
-                
+                <!-- Sweetalert Plugin -->
+                <script type="text/javascript" src="../../assets/plugin/sweetalert/sweetalert.js"></script>                
                 <!-- Custom demo Script for Dashbaord -->
                 <script type="text/javascript" src="../../dist/js/demo/dashboard.js"></script>
                 <!-- Custom Script Plugin -->
                 <script type="text/javascript" src="../../dist/js/custom.js"></script>
+                <!-- Alertify Plugin 
+                <script type="text/javascript" src="../../assets/plugin/alertify/lib/alertify.min.js"></script> -->
                 ');
         
         
@@ -2298,6 +2307,62 @@ class PageConstruct extends html_estruct_class{
             }
             print('<input type="text" id="'.$id.'" class="'.$class.'" data-max="'.$dataMax.'" value="'.$value.'" '.$readOnly.' data-thickness="0.2" data-anglearc="250" data-angleoffset="-125" data-width="150" data-height="150" data-fgcolor="'.$Color.'" style="width: 64px; height: 40px; border: 0px none; background: rgba(0, 0, 0, 0) none repeat scroll 0% 0%; font: bold 24px Arial; text-align: center; color: rgb(0, 192, 239); padding: 0px; -moz-appearance: none;">');
                 
+        }
+        
+        function frm_form($form_id,$form_title,$tab,$idEdit,$data_extra){
+            $Columnas=$this->obCon->ShowColums($tab);
+            $data_reg=$this->obCon->DevuelveValores($tab, "ID", $idEdit);
+            //print_r($Columnas);
+            //print('<form id="'.$form_id.'" method="post">');
+
+            print('<div class="form-body">');
+            print('<div class="form-heading">'.$form_title.'</div>');
+            print('<div class="row">');
+            foreach ($Columnas["Field"] as $key => $NombreCol) {
+
+                if(isset($Columnas["Field"][$key])){
+
+                    $Nombre=$Columnas["Field"][$key];
+                    $Type=$Columnas["Type"][$key];
+                    $Comment=$Columnas["Comment"][$key];
+                    $Index=$Columnas["Key"][$key];
+                    $Extra=$Columnas["Extra"][$key];
+                    $TypeField=$Columnas["TypeField"][$key];
+                    $visible=1;
+                    $sql="SELECT ID FROM tablas_campos_control WHERE NombreTabla='$tab' AND Campo='$Nombre' AND Habilitado=0";
+                    $DatosValidacion=$this->obCon->FetchAssoc($this->obCon->Query($sql));
+                    if($DatosValidacion["ID"]>0){
+                        continue;
+                    }
+                    if($Nombre=='Created' or $Nombre=='Updated' or $Nombre=='Sync'){
+                        continue;
+                    }
+                    if($Index=='PRI' and $Extra=='auto_increment'){
+                        continue;
+                    }
+
+                    if($visible==1){
+                        $valueField=$data_reg[$Nombre];
+                        print('<div class="col-md-4">');
+                            print('<div class="form-group">
+                                    <label class="col-form-label">'.$Nombre.'</label>
+                                    <input id="'.$NombreCol.'" value="'.$valueField.'" type="'.$TypeField.'" class="form-control ts_form" placeholder="'.$Nombre.'">
+                                    <span class="form-text">'.$Comment.'</span> 
+                                </div>');
+                        print('</div>');
+                    }
+                }
+
+            }
+            print('</div>');
+            print('<div class="form-seperator-dashed"></div>');
+            print('<div class="form-footer text-right">');
+                //print('<button type="reset" class="btn btn-default btn-pill mr-2">Cancelar</button>');
+                print('<button id="btn_'.$form_id.'" data-edit_id="'.$idEdit.'" class="btn btn-success btn-pill mr-2">Enviar</button>');
+            print('</div>');
+            print('</div>');
+            //print('</form>');
+            
         }
         
         //////////////////////////////////FIN

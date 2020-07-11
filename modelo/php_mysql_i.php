@@ -346,7 +346,7 @@ public function ActualizaRegistro($tabla,$campo, $value, $filtro, $idItem,$Proce
 public function ShowColums($Tabla){
     
     
-    $sql="SHOW COLUMNS FROM $Tabla;";
+    $sql="SHOW FULL COLUMNS FROM $Tabla;";
     $Results=$this->Query($sql);
     $i=0;
     while($Columnas = $this->FetchArray($Results) ){
@@ -356,6 +356,13 @@ public function ShowColums($Tabla){
         $Nombres["Key"][$i]=$Columnas["Key"];
         $Nombres["Default"][$i]=$Columnas["Default"];
         $Nombres["Extra"][$i]=$Columnas["Extra"];
+        $Nombres["Comment"][$i]=$Columnas["Comment"];
+        
+        $TipoCampo=substr($Columnas["Type"], 0, 3);
+        $Nombres["TypeField"][$i]='text';
+        if($TipoCampo=="int" or $TipoCampo=="dou" or $TipoCampo=="big" or $TipoCampo=="flo"){
+            $Nombres["TypeField"][$i]='number';
+        }
         $i++;
         
     }
