@@ -31,6 +31,14 @@ $TipoUser=$DatosUsuario["TipoUser"];
 $Role=$DatosUsuario["Role"];
 
 $css->PageInit($myTitulo);
+    
+    $css->Modal("modal_view", "TS6", "", 1, 0, 1);
+        $css->div("div_modal_view", "col-md-12", "", "", "", "", "");
+        
+        $css->Cdiv();
+        
+    $css->CModal("btnModalView", "", "", "Enviar");
+    
     $css->div("", "row", "", "", "", "", "");
         
         print('<div class="col-lg-12">
@@ -41,7 +49,12 @@ $css->PageInit($myTitulo);
                             <i class="fab fa-whmcs panel-head-icon font-24"></i>
                             <span class="panel-title-text">Selecciona un Empresa y Listado de equipos: </span>');
         $css->select("empresa_id", "form-control btn-pill", "empresa_id", "", "", "", "");
-            $sql="SELECT * FROM empresapro WHERE Estado=1";
+            if($TipoUser=="administrador"){
+                $sql="SELECT * FROM empresapro WHERE Estado=1";
+            }else{
+                $sql="SELECT t1.* FROM empresapro t1 WHERE t1.Estado=1 AND EXISTS (SELECT 1 FROM usuarios_rel_empresas t2 WHERE t2.usuario_id='$idUser' AND t2.empresa_id=t1.ID) ";
+            }
+            
             $Consulta=$obCon->Query($sql);
             while($DatosConsulta=$obCon->FetchAssoc($Consulta)){
                 $css->option("", "", "", $DatosConsulta["ID"], "", "");
@@ -51,6 +64,10 @@ $css->PageInit($myTitulo);
         $css->Cselect();
         
         $css->select("tipo_equipo", "form-control btn-pill", "tipo_equipo", "", "", "", "");
+            
+            $css->option("", "", "", 4, "", "");
+                print("Representantes");
+            $css->Coption();
             
             $css->option("", "", "", 1, "", "");
                 print("Máquinas");

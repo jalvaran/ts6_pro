@@ -52,12 +52,16 @@ $css->PageInit($myTitulo);
         
         $css->select("catalogo_id", "form-control btn-pill", "catalogo_id", "", "", "", "");
             
+            $css->option("", "", "", 5, "", "");
+                print("Unidades de negocio");
+            $css->Coption();
+            
             $css->option("", "", "", 1, "", "");
                 print("Procesos");
             $css->Coption();
             
             $css->option("", "", "", 2, "", "");
-                print("Secciones");
+                print("Ubicaciones o Secciones");
             $css->Coption();
             
             $css->option("", "", "", 3, "", "");

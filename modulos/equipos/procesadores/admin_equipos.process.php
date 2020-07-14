@@ -31,6 +31,12 @@ if( !empty($_REQUEST["Accion"]) ){
             $DatosFormulario["FechaInstalacion"]=$obCon->normalizar($_REQUEST["FechaInstalacion"]);
             $DatosFormulario["Especificaciones"]=$obCon->normalizar($_REQUEST["Especificaciones"]);
             
+            $DatosFormulario["proceso_id"]=$obCon->normalizar($_REQUEST["proceso_id"]);
+            $DatosFormulario["ubicacion_id"]=$obCon->normalizar($_REQUEST["ubicacion_id"]);
+            $DatosFormulario["representante_id"]=$obCon->normalizar($_REQUEST["representante_id"]);
+            $DatosFormulario["ValorAdquisicion"]=$obCon->normalizar($_REQUEST["ValorAdquisicion"]);
+            $DatosFormulario["FechaAdquisicion"]=$obCon->normalizar($_REQUEST["FechaAdquisicion"]);
+            
             $edit_id=$obCon->normalizar($_REQUEST["edit_id"]); 
             $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]); 
             $tipo_equipo=$obCon->normalizar($_REQUEST["tipo_equipo"]); 
@@ -41,6 +47,11 @@ if( !empty($_REQUEST["Accion"]) ){
                     exit("E1;El campo $key no puede estar vacío;$key");
                 }
             }
+            
+            if(!is_numeric($DatosFormulario["ValorAdquisicion"]) or $DatosFormulario["ValorAdquisicion"]<0){
+                exit("E1;El campo ValorAdquision debe ser un numero mayor o igual a cero;$key");
+            }
+            
             $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
             $db=$DatosEmpresa["db"];
             if($edit_id==""){
@@ -62,7 +73,7 @@ if( !empty($_REQUEST["Accion"]) ){
             $DatosFormulario["Marca"]=$obCon->normalizar($_REQUEST["Marca"]);
             $DatosFormulario["Modelo"]=$obCon->normalizar($_REQUEST["Modelo"]);
             $DatosFormulario["NumeroSerie"]=$obCon->normalizar($_REQUEST["NumeroSerie"]);
-            
+            $DatosFormulario["maquina_id"]=$obCon->normalizar($_REQUEST["maquina_id"]);
             $DatosFormulario["Especificaciones"]=$obCon->normalizar($_REQUEST["Especificaciones"]);
             
             $edit_id=$obCon->normalizar($_REQUEST["edit_id"]); 
@@ -130,6 +141,52 @@ if( !empty($_REQUEST["Accion"]) ){
             
         break;//Fin caso 3
         
+        case 4: //Crear o editar un representante
+            
+            $DatosFormulario["NombreRepresentante"]=$obCon->normalizar($_REQUEST["NombreRepresentante"]);
+            $DatosFormulario["Contacto"]=$obCon->normalizar($_REQUEST["Contacto"]);
+            $DatosFormulario["Telefono"]=$obCon->normalizar($_REQUEST["Telefono"]);
+            $DatosFormulario["Fax"]=$obCon->normalizar($_REQUEST["Fax"]);
+            $DatosFormulario["Email"]=$obCon->normalizar($_REQUEST["Email"]);
+            $DatosFormulario["Direccion"]=$obCon->normalizar($_REQUEST["Direccion"]);            
+            $DatosFormulario["Ciudad"]=$obCon->normalizar($_REQUEST["Ciudad"]);
+            $DatosFormulario["Celular"]=$obCon->normalizar($_REQUEST["Celular"]);
+            
+            $edit_id=$obCon->normalizar($_REQUEST["edit_id"]); 
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]); 
+            $tipo_equipo=$obCon->normalizar($_REQUEST["tipo_equipo"]); 
+            
+            foreach ($DatosFormulario as $key => $value) {
+                
+                if($value==''){
+                    exit("E1;El campo $key no puede estar vacío;$key");
+                }
+            }
+            
+                        
+            $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
+            $db=$DatosEmpresa["db"];
+            if($edit_id==""){
+                $sql=$obCon->getSQLInsert("catalogo_representante", $DatosFormulario); 
+            }else{
+                $sql=$obCon->getSQLUpdate("catalogo_representante", $DatosFormulario);
+                $sql.=" WHERE ID='$edit_id'";
+            }
+            $obCon->QueryExterno($sql, HOST, USER, PW, $db, "");
+            print("OK;Datos Guardados");
+            
+        break;//Fin caso 4
+        
+        case 5://Desligar un componente de una maquina
+            $componente_id=$obCon->normalizar($_REQUEST["componente_id"]); 
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]); 
+            $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
+            $db=$DatosEmpresa["db"];
+            
+            $sql="UPDATE equipos_componentes SET maquina_id=0 WHERE ID='$componente_id'";
+            $obCon->QueryExterno($sql, HOST, USER, PW, $db, "");
+            print("OK;Componente Desligado a la maquina");
+        break;//Fin caso 5    
         
     }
     

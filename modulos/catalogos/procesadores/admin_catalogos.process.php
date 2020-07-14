@@ -23,6 +23,7 @@ if( !empty($_REQUEST["Accion"]) ){
             
             $DatosFormulario["CodigoProceso"]=$obCon->normalizar($_REQUEST["CodigoProceso"]);
             $DatosFormulario["Nombre"]=$obCon->normalizar($_REQUEST["Nombre"]);
+            $DatosFormulario["unidadNegocio_id"]=$obCon->normalizar($_REQUEST["unidadNegocio_id"]);
                         
             $edit_id=$obCon->normalizar($_REQUEST["edit_id"]); 
             $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]); 
@@ -141,6 +142,32 @@ if( !empty($_REQUEST["Accion"]) ){
             
         break;//Fin caso 4
         
+        case 5: //Crear o editar una unidad de negocio
+            
+            $DatosFormulario["UnidadNegocio"]=$obCon->normalizar($_REQUEST["UnidadNegocio"]);
+                                    
+            $edit_id=$obCon->normalizar($_REQUEST["edit_id"]); 
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]); 
+            $catalogo_id=$obCon->normalizar($_REQUEST["catalogo_id"]); 
+            
+            foreach ($DatosFormulario as $key => $value) {
+                
+                if($value==''){
+                    exit("E1;El campo $key no puede estar vacío;$key");
+                }
+            }
+            $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
+            $db=$DatosEmpresa["db"];
+            if($edit_id==""){
+                $sql=$obCon->getSQLInsert("catalogo_unidades_negocio", $DatosFormulario); 
+            }else{
+                $sql=$obCon->getSQLUpdate("catalogo_unidades_negocio", $DatosFormulario);
+                $sql.=" WHERE ID='$edit_id'";
+            }
+            $obCon->QueryExterno($sql, HOST, USER, PW, $db, "");
+            print("OK;Datos Guardados");
+            
+        break;//Fin caso 5
         
     }
     

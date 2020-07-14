@@ -731,7 +731,7 @@ class PageConstruct extends html_estruct_class{
         print('<!-- Page Footer -->
             
             <div class="page-ftr">
-                <div>© '.$anio.'. Techno Soluciones SAS</div>
+                <div>© '.$anio.'. Techno Soluciones SAS AND PRODG SAS</div>
             </div>
         ');
     }
@@ -939,6 +939,8 @@ class PageConstruct extends html_estruct_class{
      */
     public function AgregaJS(){
         print('<!-- Include js files -->
+                <!-- General TS Plugin -->
+                <script type="text/javascript" src="../../general/js/general.js"></script>
                 <!-- Vendor Plugin -->
                 <script type="text/javascript" src="../../assets/plugin/vendor.min.js"></script>
                 <!-- Raphael Plugin -->
@@ -1694,17 +1696,18 @@ class PageConstruct extends html_estruct_class{
                 $class="modal modal-warning";
             }
             
-            $style="";
+            $classTypeModal="";
             if($Amplio==1){
-                $style='style="width: 80%;"';
+                $classTypeModal='modal-lg';
             }
             print('<div class="'.$class.' '.$OcultarModal.'" id="'.$id.'" >
-                    <div class="modal-dialog" '.$style.'>
+                    <div class="modal-dialog '.$classTypeModal.'" >
                       <div class="modal-content">
                         <div class="modal-header">
-                          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <h4 class="modal-title">'.$title.'</h4>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span></button>
-                          <h4 class="modal-title">'.$title.'</h4>
+                          
                         </div>
                         <div class="modal-body">');
         }
@@ -2310,6 +2313,16 @@ class PageConstruct extends html_estruct_class{
         }
         
         function frm_form($form_id,$form_title,$tab,$idEdit,$data_extra){
+            $ArrayTabs=explode(".",$tab);
+            $TotalArray=count($ArrayTabs);
+            if($TotalArray==2){
+                $db=$ArrayTabs[0];
+                $NombreTabla=$ArrayTabs[1];
+            }else{
+                $db=DB;
+                $NombreTabla=$ArrayTabs[0];
+            }
+            
             
             $Columnas=$this->obCon->ShowColums($tab);
             $data_reg=$this->obCon->DevuelveValores($tab, "ID", $idEdit);
@@ -2330,7 +2343,7 @@ class PageConstruct extends html_estruct_class{
                     $Extra=$Columnas["Extra"][$key];
                     $TypeField=$Columnas["TypeField"][$key];
                     $visible=1;
-                    $sql="SELECT ID FROM tablas_campos_control WHERE NombreTabla='$tab' AND Campo='$Nombre' AND Habilitado=0";
+                    $sql="SELECT ID FROM tablas_campos_control WHERE NombreTabla='$NombreTabla' AND Campo='$Nombre' AND Habilitado=0";
                     $DatosValidacion=$this->obCon->FetchAssoc($this->obCon->Query($sql));
                     if($DatosValidacion["ID"]>0){
                         continue;
@@ -2345,6 +2358,9 @@ class PageConstruct extends html_estruct_class{
 
                     if($visible==1){
                         $valueField=$data_reg[$Nombre];
+                        if(isset($data_extra[$NombreCol]["default"]) and $valueField==''){
+                            $valueField=$data_extra[$NombreCol]["default"];
+                        }
                         $disabled="";
                         if($Index=='PRI' and $valueField==''){
                             $valueField=$this->obCon->getUniqId();
@@ -2352,9 +2368,35 @@ class PageConstruct extends html_estruct_class{
                         }
                         print('<div class="col-md-4">');
                             print('<div class="form-group">
-                                    <label class="col-form-label">'.$Nombre.'</label>
-                                    <input '.$disabled.' id="'.$NombreCol.'" value="'.$valueField.'" type="'.$TypeField.'" class="form-control ts_form" placeholder="'.$Nombre.'">
-                                    <span class="form-text">'.$Comment.'</span> 
+                                    <label class="col-form-label">'.$Nombre.'</label>');
+                            
+                            $sql="SELECT TablaAsociada,CampoAsociado,IDCampoAsociado FROM tablas_campos_asociados WHERE TablaOrigen='$NombreTabla' AND CampoTablaOrigen='$NombreCol'";
+                            $CamposAsociados= $this->obCon->FetchAssoc($this->obCon->Query($sql));
+                            
+                            if($CamposAsociados["TablaAsociada"]==''){
+                                print('<input '.$disabled.' id="'.$NombreCol.'" value="'.$valueField.'" type="'.$TypeField.'" class="form-control ts_form ts_campo_'.$NombreCol.'" placeholder="'.$NombreCol.'">');
+                            }else{
+                                $this->select($NombreCol, "form-control ts_col_$NombreCol", $NombreCol, "", "", "", "");
+                                    $this->option("", "", "", "", "", "", "", "");
+                                        print("Seleccione una opcion");
+                                    $this->Coption();
+                                    $TablaConsulta=$db.".".$CamposAsociados["TablaAsociada"];
+                                    $CampoAsociado=$CamposAsociados["CampoAsociado"];
+                                    $IDCampoAsociado=$CamposAsociados["IDCampoAsociado"];
+                                    $sql="SELECT $CampoAsociado,$IDCampoAsociado FROM $TablaConsulta ";
+                                    $ConsultaCamposAsociados=$this->obCon->Query($sql);
+                                    while($DatosCamposAsociados= $this->obCon->FetchAssoc($ConsultaCamposAsociados)){
+                                        $sel=0;
+                                        if($DatosCamposAsociados[$IDCampoAsociado]==$valueField){
+                                            $sel=1;
+                                        }
+                                        $this->option("", "", "", $DatosCamposAsociados[$IDCampoAsociado], "", "", $sel, "");
+                                            print($DatosCamposAsociados[$CampoAsociado]." || ".$DatosCamposAsociados[$IDCampoAsociado]);
+                                        $this->Coption();
+                                    }
+                                $this->Cselect();
+                            }
+                            print('<span class="form-text">'.$Comment.'</span> 
                                 </div>');
                         print('</div>');
                     }
