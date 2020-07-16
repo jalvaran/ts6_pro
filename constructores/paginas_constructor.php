@@ -39,6 +39,8 @@ class PageConstruct extends html_estruct_class{
                         <meta name="viewport" content="width=device-width, initial-scale=1">
                         <title>'.$Titulo.'</title>
                         <link rel="icon" type="image/x-icon" href="../../images/favicontechno.png">
+                        <!-- select 2 CSS -->
+                        <link rel="stylesheet" href="../../assets/plugin/select2/css/select2.min.css"  />
                         <!-- Switcher CSS -->
                         <link rel="stylesheet" href="../../assets/plugin/switchery/switchery.min.css" />
                         <!-- Morris CSS -->
@@ -939,6 +941,7 @@ class PageConstruct extends html_estruct_class{
      */
     public function AgregaJS(){
         print('<!-- Include js files -->
+                
                 <!-- General TS Plugin -->
                 <script type="text/javascript" src="../../general/js/general.js"></script>
                 <!-- Vendor Plugin -->
@@ -959,6 +962,8 @@ class PageConstruct extends html_estruct_class{
                 <script type="text/javascript" src="../../dist/js/demo/dashboard.js"></script>
                 <!-- Custom Script Plugin -->
                 <script type="text/javascript" src="../../dist/js/custom.js"></script>
+                <!-- select 2 -->
+                <script type="text/javascript" src="../../assets/plugin/select2/js/select2.min.js"></script>
                 <!-- Alertify Plugin 
                 <script type="text/javascript" src="../../assets/plugin/alertify/lib/alertify.min.js"></script> -->
                 ');
@@ -2414,6 +2419,189 @@ class PageConstruct extends html_estruct_class{
             
         }
         
+        
+        function frm_form_orden_mantenimiento($db,$idEdit){
+            $tab=$db.".ordenes_trabajo";
+            $DatosOrden=$this->obCon->DevuelveValores($tab, "ID", $idEdit);
+            $orden_trabajo_id=$DatosOrden["orden_trabajo_id"];
+            if($orden_trabajo_id==''){
+                $orden_trabajo_id= $this->obCon->getUniqId("ot_");
+            }
+            print('<div class="form-body">');
+                print('<div class="form-heading">Crear o Editar una orden de trabajo</div>');
+                    print('<div class="row">');
+                    
+                        print('<div class="col-md-4">
+                                    <div class="form-group">
+                                        <label class="col-form-label">ID Orden</label>
+                                        <input id="orden_trabajo_id" name="orden_trabajo_id" type="text" class="form-control ts_form" value="'.$orden_trabajo_id.'" placeholder="" disabled="true">
+                                        <span class="form-text">Identificador único de la Orden</span> 
+                                    </div>
+                                </div>');
+                        
+                        
+                        print('<div class="col-md-4">');
+                            print('<div class="form-group">');
+                                print('<label class="col-form-label">Tipo de Mantenimiento:</label>');
+                                    $sql="SELECT * FROM ordenes_trabajo_tipo_mantenimiento";
+                                    $Consulta=$this->obCon->Query($sql);
+                                    $this->select("orden_tabajo_tipo_id", "form-control", "orden_tabajo_tipo_id", "", "", "", "");
+                                        $this->option("", "", "", "", "", "");
+                                            print("Seleccione un tipo de mantenimiento");
+                                        $this->Coption();
+
+                                        while($DatosConsulta=$this->obCon->FetchAssoc($Consulta)){
+                                            $this->option("", "", "", $DatosConsulta["ID"], "", "");
+                                                print($DatosConsulta["tipo_mantenimiento"]);
+                                            $this->Coption();
+                                        }
+
+                                    $this->Cselect();
+                                print('<span class="form-text">Correctivo o Preventivo</span>');
+                            print('</div>');
+                        print('</div>');
+                        
+                        print('<div class="col-md-4">
+                                    <div class="form-group">
+                                        <label class="col-form-label">Fecha programada:</label>
+                                        <input id="fecha_programada" name="fecha_programada" type="date" class="form-control ts_form" value="" placeholder="Fecha programada" >
+                                        <span class="form-text">Fecha programa para el mantenimiento</span> 
+                                    </div>
+                                </div>');
+                        
+                        print('<div class="col-md-6">');
+                            print('<div class="form-group">');
+                                print('<label class="col-form-label">Máquina:</label>');
+                                    
+                                    $this->select("maquina_id", "form-control", "maquina_id", "", "", "", "");
+                                        $this->option("", "", "", "", "", "");
+                                            print("Seleccione una máquina");
+                                        $this->Coption();
+                                        $sql="SELECT t1.*,
+                                                 (SELECT NombreSeccion FROM $db.catalogo_secciones t2 WHERE t2.ID=t1.ubicacion_id) as Ubicacion 
+                                                 FROM $db.equipos_maquinas t1 ORDER BY Nombre ASC";
+                                        $Consulta=$this->obCon->Query($sql);
+                                        while($DatosConsulta=$this->obCon->FetchAssoc($Consulta)){
+                                            $this->option("", "", "", $DatosConsulta["ID"], "", "");
+                                                print($DatosConsulta["Nombre"]." || Ubicación: ".$DatosConsulta["Ubicacion"]." || Serie: ".$DatosConsulta["NumeroSerie"]);
+                                            $this->Coption();
+                                        }
+                                    $this->Cselect();
+                                print('<span class="form-text">Seleccione una máquina</span>');
+                            print('</div>');
+                        print('</div>');
+                        
+                        print('<div class="col-md-6">');
+                            print('<div class="form-group">');
+                                print('<label class="col-form-label">Componente:</label>');
+                                    
+                                    $this->select("componente_id", "form-control", "componente_id", "", "", "", "");
+                                        $this->option("", "", "", "", "", "");
+                                            print("Seleccione un componente");
+                                        $this->Coption();
+                                        
+                                    $this->Cselect();
+                                print('<span class="form-text">Seleccione un componente de la maquina</span>');
+                            print('</div>');
+                        print('</div>');
+                        print('</div>');
+                        print('<div id="divOpcionesPreventivo" style="display:none">');
+                
+                            print('<div class="form-seperator-dashed"></div>');
+
+                            print('<div class="form-heading" >Frecuencia del mantenimiento:</div>');
+                            print('<div class="row">');
+                                print('<div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label class="col-form-label">Fecha del último mantenimiento:</label>
+                                                    <input id="fecha_ultimo_mantenimiento" name="fecha_ultimo_mantenimiento" type="date" class="form-control ts_form" value="" placeholder="Dias" >
+                                                    <span class="form-text">Fecha del último mantenimiento del componente</span> 
+                                                </div>
+                                            </div>');
+                                print('<div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label class="col-form-label">Dias:</label>
+                                                    <input id="frecuencia_dias" name="frecuencia_dias" type="number" class="form-control ts_form" value="" placeholder="Dias" >
+                                                    <span class="form-text">Frecuencia del mantenimiento en dias</span> 
+                                                </div>
+                                            </div>');
+
+                                print('<div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label class="col-form-label">Horas:</label>
+                                                    <input id="frecuencia_horas" name="frecuencia_horas" type="number" class="form-control ts_form" value="" placeholder="Horas" >
+                                                    <span class="form-text">Frecuencia del mantenimiento en horas</span> 
+                                                </div>
+                                            </div>');
+
+                                print('<div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label class="col-form-label">Kilometros:</label>
+                                                    <input id="frecuencia_kilometros" name="frecuencia_kilometros" type="number" class="form-control ts_form" value="" placeholder="Kilometros" >
+                                                    <span class="form-text">Frecuencia del mantenimiento en kilometros</span> 
+                                                </div>
+                                            </div>');
+                                
+                            print('</div>');   
+                            print('<div class="form-seperator-dashed"></div>');
+                                print('<div class="form-heading" >Tareas del mantenimiento:</div>');
+                                print('<div class="row">');
+                                print('<div class="col-md-10">');
+                                    print('<div class="form-group">');
+                                        print('<label class="col-form-label">Tareas:</label>');
+                                            
+                                            $this->select("cmb_tarea_mantenimiento", "form-control", "cmb_tarea_mantenimiento", "", "", "", "");
+                                                $this->option("", "", "", "", "", "");
+                                                    print("Seleccione una tarea");
+                                                $this->Coption();
+                                                $sql="SELECT t1.*
+                                                 FROM $db.catalogo_tareas t1 ORDER BY NombreTarea ASC";
+                                                $Consulta=$this->obCon->Query($sql);
+                                                while($DatosConsulta=$this->obCon->FetchAssoc($Consulta)){
+                                                    $this->option("", "", "", $DatosConsulta["ID"], "", "");
+                                                        print($DatosConsulta["NombreTarea"]." || Codigo Tarea: ".$DatosConsulta["CodigoTarea"]." || Tipo Tarea: ".$DatosConsulta["TipoTarea"]);
+                                                    $this->Coption();
+                                                }
+                                            $this->Cselect();
+                                        print('<span class="form-text">Seleccione una tarea para este mantenimiento</span>');
+                                    print('</div>');
+                                print('</div>');
+                                
+                                print('<div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label class="col-form-label">Agregar Tarea:</label><br>
+                                                    <button id="btn_agregar_tarea" class="btn btn-primary btn-pill mr-2">Agregar</button>
+                                                    
+                                                </div>
+                                            </div>');
+                                print('<div id="divTareasOrdenTrabajo" class="col-md-12">');
+                                
+                                print('</div>');
+                                
+                                print('</div>');
+                            print('<div class="form-seperator-dashed"></div>');
+                            
+                        print('</div>');
+                        print('<div class="row">');
+                        print('<div class="col-md-12">
+                                   <div class="form-group">
+                                       <label class="col-form-label">Observaciones Iniciales:</label>
+                                       <textarea id="observaciones_orden" name="observaciones_orden" class="form-control ts_form" placeholder="Observaciones iniciales de la orden de trabajo" ></textarea>
+                                       <span class="form-text">Observaciones</span> 
+                                   </div>
+                               </div>');
+                        
+                    print('</div>');
+                print('</div>');  
+                
+                
+                print('<div class="form-seperator-dashed"></div>');
+                    print('<div class="form-footer text-right">');                        
+                        print('<button id="btn_form_orden_trabajo" data-edit_id="'.$idEdit.'" class="btn btn-success btn-pill mr-2">Guardar</button>');
+                    print('</div>');
+                    print('</div>');
+            print('</div>');
+        }
         //////////////////////////////////FIN
 }
 	

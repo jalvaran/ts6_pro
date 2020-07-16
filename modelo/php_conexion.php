@@ -121,5 +121,15 @@ public function VerificaPermisos($VectorPermisos) {
             return $dv;
         }
     }
+    
+    public function SumeDiasFecha($Fecha,$Dias){		
+        
+        $nuevafecha = date('Y-m-d', strtotime($Fecha) + 86400);
+        $nuevafecha = date('Y-m-d', strtotime("$Fecha + $Dias day"));
+
+        return($nuevafecha);
+
+    }
+    
 
 }
