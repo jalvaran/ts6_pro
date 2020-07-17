@@ -152,9 +152,9 @@ $css->PageInit($myTitulo);
                 </div>');
     
     $css->Cdiv();
-        
+       
 $css->PageFin();
-print('<script src="jsPages/mantenimiento.js"></script>');
+print('<script src="jsPages/mantenimiento.js"></script>'); 
 $css->Cbody();
 $css->Chtml();
 

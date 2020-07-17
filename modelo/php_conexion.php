@@ -131,5 +131,10 @@ public function VerificaPermisos($VectorPermisos) {
 
     }
     
-
+    public function obtenerDiferenciaFechasDias($Fecha1,$Fecha2) {
+        $date1 = new DateTime($Fecha1);
+        $date2 = new DateTime($Fecha2);
+        $diff = $date1->diff($date2);        
+        return($diff->days);
+    }
 }

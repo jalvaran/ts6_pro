@@ -159,7 +159,9 @@ if( !empty($_REQUEST["Accion"]) ){
                     print('<table class="table table-hover table-striped">');
                         print('<thead>
                                     <tr>
-                                        <th>Acciones</th>
+                                        <th>PDF</th>
+                                        <th>Editar</th>
+                                        <th>Cerrar</th>
                                         <th>ID</th>
                                         <th>Fecha Programada</th>
                                         <th>Mantenimiento</th>
@@ -181,10 +183,14 @@ if( !empty($_REQUEST["Accion"]) ){
                                 
                                 print('<tr>');
                                     print("<td>");
-                                        print('<a onclick="frm_crear_editar_registro(`'.$idItem.'`)" ><i class="icon-pencil text-info"></i></a>');
-                                        print(' || <a onclick="ver_tareas_orden(`'.$idItem.'`)" title="Ver Tareas"  ><i class="fa fa-eye text-success"></i></a>');
-                                        print(' || <a href="" target="_blank" title="Ver PDF"  ><i class="far fa-file-pdf text-error"></i></a>');
-                                        print(' || <a onclick="form_cerrar_orden(`'.$idItem.'`)" title="Cerrar Orden"  ><i class="far fa-edit text-warning"></i></a>');
+                                        print('<a style="font-size:25px;color:green" href="" target="_blank" title="Ver PDF" title="Ver PDF" ><i class="far fa-file-pdf text-error"></i></a>');
+                                    print("</td>");
+                                    print("<td>");
+                                        print('<a style="font-size:25px;" title="Editar Orden" onclick="frm_crear_editar_registro(`'.$idItem.'`)" ><i class="icon-pencil text-info"></i></a>');
+                                                                                
+                                    print("</td>");
+                                    print("<td>");
+                                        print('<a onclick="form_cerrar_orden(`'.$idItem.'`)" title="Cerrar Orden"  ><i style="font-size:25px;color:red" class="fa fa-clipboard-list"></i></a>');
                                     print("</td>");
                                     print("<td class='mailbox-name'>");
                                         print($RegistrosTabla["ID"]);
@@ -205,25 +211,19 @@ if( !empty($_REQUEST["Accion"]) ){
                                         print($RegistrosTabla["nombre_ubicacion"]);
                                     print("</td>");
                                     print("<td class='mailbox-subject text-primary'>");
-                                        print(" <strong>".$RegistrosTabla["Proceso"]."</strong>");
+                                        print(" <strong>".$RegistrosTabla["observaciones_orden"]."</strong>");
                                     print("</td>");
                                     print("<td class='mailbox-subject text-flickr'>");
-                                        print(" <strong>".$RegistrosTabla["Ubicacion"]."</strong>");
+                                        print(" <strong>".$RegistrosTabla["nombre_estado"]."</strong>");
                                     print("</td>");
                                     
                                     print("<td class='mailbox-subject'>");
-                                        print(($RegistrosTabla["observaciones_orden"]));
-                                    print("</td>");
-                                    print("<td class='mailbox-subject'>");
-                                        print(($RegistrosTabla["nombre_estado"]));
-                                    print("</td>");
-                                    print("<td class='mailbox-subject text-flickr'>");
                                         print(($RegistrosTabla["fecha_cierre"]));
                                     print("</td>");
-                                    print("<td class='mailbox-subject '>");
+                                    print("<td class='mailbox-subject'>");
                                         print(($RegistrosTabla["nombre_tecnico"]));
                                     print("</td>");
-                                    
+                                                                        
                                     print("<td class='mailbox-subject'>");
                                         print(($RegistrosTabla["observaciones_cierre"]));
                                     print("</td>");
@@ -288,7 +288,114 @@ if( !empty($_REQUEST["Accion"]) ){
             $css->CerrarTabla();
             
             
-        break; //Fin caso 2
+        break; //Fin caso 3
+        
+        case 4://dibuja el formulario para cerrar una orden
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $orden_trabajo_id=$obCon->normalizar($_REQUEST["orden_trabajo_id"]);
+            $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
+            $db=$DatosEmpresa["db"];
+            $DatosOT=$obCon->DevuelveValores("$db.ordenes_trabajo", "ID", $orden_trabajo_id);
+            
+            if($DatosOT["tipo_mantenimiento"]==1){
+                $css->frm_cerrar_orden_trabajo_correctivo($db, $DatosOT);
+            }
+            
+            if($DatosOT["tipo_mantenimiento"]==2){
+                $css->frm_cerrar_orden_trabajo_preventivo($db, $DatosOT);
+            }
+            
+        break;//Fin caso 4    
+        
+        case 5://Buscar una parte o suministro para agregar a una orden de trabajo
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $orden_trabajo_id=$obCon->normalizar($_REQUEST["orden_trabajo_id"]);
+            $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
+            $db=$DatosEmpresa["db"];
+            $BusquedaSuministros=$obCon->normalizar($_REQUEST["BusquedaSuministros"]);
+            if($BusquedaSuministros==''){
+                exit(" ");
+            }
+            $arrayBusqueda= explode(" ", $BusquedaSuministros);
+            $sql="SELECT * FROM $db.equipos_partes ";
+            $Condicion=" WHERE Codigo='$BusquedaSuministros' ";
+            foreach ($arrayBusqueda as $key => $value) {
+               $Condicion.=" OR DescripcionPrimaria LIKE '%$value%' "; 
+            }
+            $sql.=$Condicion." LIMIT 30";
+            
+            $Consulta=$obCon->Query($sql);
+            $css->CrearTabla();
+                $css->FilaTabla(14);
+                    $css->ColTabla("Codigo", 1);
+                    $css->ColTabla("Nombre", 1);
+                    $css->ColTabla("ValorUnitario", 1);
+                    $css->ColTabla("Cantidad", 1);
+                    $css->ColTabla("Agregar", 1);
+                $css->CierraFilaTabla();
+                
+                while($DatosConsulta=$obCon->FetchAssoc($Consulta)){
+                    $idItem=$DatosConsulta["ID"];
+                    $css->FilaTabla(14);
+                        $css->ColTabla($DatosConsulta["Codigo"], 1);
+                        $css->ColTabla($DatosConsulta["DescripcionPrimaria"]." ".$DatosConsulta["DescripcionSecundaria"], 1);
+                        print('<td>');
+                            print('<input type="number" id="TxtValorUnitario_'.$idItem.'" class="form-control" placeholder="Valor Unitario" value="'.$DatosConsulta["Costo"].'">');
+                        print('</td>');
+                        print('<td>');
+                            print('<input type="number" id="TxtCantidad_'.$idItem.'" class="form-control" placeholder="Cantidad" value="1">');
+                        print('</td>');
+                        print('<td>');
+                            print('<li id="btn_agregar_insumo_'.$idItem.'" class="fa fa-plus-circle" style="color:green;font-size:25px;cursor:pointer" onclick=AgregarInsumoAOrdenTrabajo(`'.$idItem.'`,`'.$orden_trabajo_id.'`)></li>');
+                        print('</td>');
+                    $css->CierraFilaTabla();
+                }
+                
+            $css->CerrarTabla();
+        break;// fin caso 5    
+        
+        
+        case 6://listar las partes o suministros agregados a una orden de trabajo
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $orden_trabajo_id=$obCon->normalizar($_REQUEST["orden_trabajo_id"]);
+            $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
+            $db=$DatosEmpresa["db"];
+            
+            $sql="SELECT t1.*,t2.DescripcionPrimaria,t2.DescripcionSecundaria, t2.Codigo   
+                     FROM $db.ordenes_trabajo_insumos t1 
+                    INNER JOIN $db.equipos_partes t2 ON t2.ID=t1.insumo_id 
+                    WHERE t1.orden_trabajo_id='$orden_trabajo_id'  
+                    
+                    ";
+                        
+            $Consulta=$obCon->Query($sql);
+            $css->CrearTabla();
+                $css->FilaTabla(14);
+                    $css->ColTabla("Codigo", 1);
+                    $css->ColTabla("Nombre", 1);
+                    $css->ColTabla("ValorUnitario", 1);
+                    $css->ColTabla("Cantidad", 1);
+                    $css->ColTabla("Total", 1);
+                    $css->ColTabla("Eliminar", 1);
+                $css->CierraFilaTabla();
+                
+                while($DatosConsulta=$obCon->FetchAssoc($Consulta)){
+                    $idItem=$DatosConsulta["ID"];
+                    $css->FilaTabla(14);
+                        $css->ColTabla($DatosConsulta["Codigo"], 1);
+                        $css->ColTabla($DatosConsulta["DescripcionPrimaria"]." ".$DatosConsulta["DescripcionSecundaria"], 1);
+                        $css->ColTabla(number_format($DatosConsulta["valor_unitario"]), 1);
+                        $css->ColTabla(number_format($DatosConsulta["cantidad"]), 1);
+                        $css->ColTabla(number_format($DatosConsulta["total"]), 1);
+                        
+                        print('<td>');
+                            print('<li class="far fa-times-circle" style="color:red;font-size:25px;cursor:pointer" onclick=eliminarItem(`2`,`'.$idItem.'`)></li>');
+                        print('</td>');
+                    $css->CierraFilaTabla();
+                }
+                
+            $css->CerrarTabla();
+        break;// fin caso 6
                      
     }
     

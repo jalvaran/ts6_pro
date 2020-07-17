@@ -261,8 +261,11 @@ if( !empty($_REQUEST["Accion"]) ){
             if($tabla_id==1){
                 $Tabla=$db.".ordenes_trabajo_tareas";
             }
+            if($tabla_id==2){
+                $Tabla=$db.".ordenes_trabajo_insumos";
+            }
             $obCon->BorraReg($Tabla, "ID", $item_id);
-            print("OK;Tarea Eliminada");
+            print("OK;Registro Eliminado");
             
         break;//Fin caso 9
         
@@ -281,6 +284,164 @@ if( !empty($_REQUEST["Accion"]) ){
             
         break;//Fin caso 10
         
+        case 11://crear una orden de trabajo
+            
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]); 
+            $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
+            $db=$DatosEmpresa["db"];
+            
+            $edit_id=$obCon->normalizar($_REQUEST["edit_id"]);
+            $orden_trabajo_id=$obCon->normalizar($_REQUEST["orden_trabajo_id"]);
+            $orden_tabajo_tipo_id=$obCon->normalizar($_REQUEST["orden_tabajo_tipo_id"]);
+            $fecha_programada=$obCon->normalizar($_REQUEST["fecha_programada"]);
+            $maquina_id=$obCon->normalizar($_REQUEST["maquina_id"]);
+            $componente_id=$obCon->normalizar($_REQUEST["componente_id"]);
+            $fecha_ultimo_mantenimiento=$obCon->normalizar($_REQUEST["fecha_ultimo_mantenimiento"]);
+            $frecuencia_dias=$obCon->normalizar($_REQUEST["frecuencia_dias"]);
+            $frecuencia_horas=$obCon->normalizar($_REQUEST["frecuencia_horas"]);
+            $frecuencia_kilometros=$obCon->normalizar($_REQUEST["frecuencia_kilometros"]);
+            $observaciones_orden=$obCon->normalizar($_REQUEST["observaciones_orden"]);
+            
+            if($orden_trabajo_id==""){
+                exit("E1;no se recibió el id de la orden de trabajo");
+            }
+            if($orden_tabajo_tipo_id==""){
+                exit("E1;Debe seleccionar el tipo de  orden de trabajo;orden_tabajo_tipo_id");
+            }
+            if($fecha_programada==""){
+                exit("E1;El campo fecha programada no puede estar vacío;fecha_programada");
+            }
+            if($maquina_id==""){
+                exit("E1;Debe Seleccionar una maquina;maquina_id");
+            }
+            if($componente_id==""){
+                exit("E1;Debe Seleccionar un componente;componente_id");
+            }
+            if($fecha_ultimo_mantenimiento==""){
+                exit("E1;El campo fecha de último mantenimiento no puede estar vacío;fecha_ultimo_mantenimiento");
+            }
+            if(!is_numeric($frecuencia_dias) or $frecuencia_dias<0){
+                exit("E1;El campo Frecuencia en Días debe ser un numero mayor o igual a cero;frecuencia_dias");
+            }
+            if(!is_numeric($frecuencia_horas) or $frecuencia_horas<0){
+                exit("E1;El campo Frecuencia en Horas debe ser un numero mayor o igual a cero;frecuencia_horas");
+            }
+            if(!is_numeric($frecuencia_kilometros) or $frecuencia_kilometros<0){
+                exit("E1;El campo Frecuencia en Kilometros debe ser un numero mayor o igual a cero;frecuencia_kilometros");
+            }
+            if($observaciones_orden==""){
+                exit("E1;El campo Observaciones no puede estar vacío;observaciones_orden");
+            }
+            if($orden_tabajo_tipo_id==2){//Si es una orden de mantenimiento preventivo debe agregar al menos una tarea
+                $sql="SELECT COUNT(ID) as TotalTareas from $db.ordenes_trabajo_tareas where orden_trabajo_id='$orden_trabajo_id'";
+                $validacion=$obCon->FetchAssoc($obCon->Query($sql));
+                if($validacion["TotalTareas"]<=0 ){
+                    exit("E1;Debe Agregar al menos una tarea de mantenimiento;cmb_tarea_mantenimiento");
+                }
+            }
+            $obCon->crearEditarOrdenTrabajo($db, $edit_id, $orden_trabajo_id, $orden_tabajo_tipo_id, $fecha_programada, $maquina_id, $componente_id, $fecha_ultimo_mantenimiento, $frecuencia_dias, $frecuencia_horas, $frecuencia_kilometros, $observaciones_orden, $idUser);
+            
+            print("OK;Orden de trabajo creada correctamente");
+            
+        break;//Fin caso 11
+        
+        case 12://Agregar un insumo a una orden de trabajo
+            
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]); 
+            
+            $insumo_id=$obCon->normalizar($_REQUEST["insumo_id"]); 
+            $orden_trabajo_id=$obCon->normalizar($_REQUEST["orden_trabajo_id"]); 
+            $valor_unitario=$obCon->normalizar($_REQUEST["valor_unitario"]); 
+            $cantidad=$obCon->normalizar($_REQUEST["cantidad"]); 
+            
+            if($empresa_id==''){
+                exit("E1;No se recibió el id de la empresa");
+            }
+            if($insumo_id==''){
+                exit("E1;No se recibió el id del insumo");
+            }
+            if($orden_trabajo_id==''){
+                exit("E1;No se recibió el id de la orden de trabajo");
+            }
+            if(!is_numeric($valor_unitario) or $valor_unitario <= 0){
+                exit("E1;El Valor unitario debe ser un número mayor a cero;TxtValorUnitario_".$insumo_id);
+            }
+            if(!is_numeric($cantidad) or $cantidad <= 0){
+                exit("E1;La cantidad debe ser un número mayor a cero;TxtCantidad_".$insumo_id);
+            }
+                
+            $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
+            $db=$DatosEmpresa["db"];
+            
+            $obCon->agregarInsumoOT($db, $orden_trabajo_id, $insumo_id, $cantidad, $valor_unitario, $idUser);
+            
+            exit("OK;Insumo agregado");
+            
+        break;//fin caso 12    
+        
+        
+        case 13://cerrar orden de trabajo
+            
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]); 
+            $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
+            $db=$DatosEmpresa["db"];
+            $orden_trabajo_id=$obCon->normalizar($_REQUEST["orden_trabajo_id"]);
+            $fecha_cierre=$obCon->normalizar($_REQUEST["fecha_cierre"]);
+            $verificacion_orden=$obCon->normalizar($_REQUEST["verificacion_orden"]);
+            $horas_ultimo_mantenimiento=$obCon->normalizar($_REQUEST["horas_ultimo_mantenimiento"]);
+            $kilometros_ultimo_mantenimiento=$obCon->normalizar($_REQUEST["kilometros_ultimo_mantenimiento"]);
+            $tecnico_id=$obCon->normalizar($_REQUEST["tecnico_id"]);
+            $observaciones_cierre=$obCon->normalizar($_REQUEST["observaciones_cierre"]);
+            
+            if($orden_trabajo_id==""){
+                exit("E1;no se recibió el id de la orden de trabajo");
+            }
+            
+            if($fecha_cierre==""){
+                exit("E1;El campo fecha de cierre no puede estar vacío;fecha_cierre");
+            }
+            if($verificacion_orden==""){
+                exit("E1;Debe informar si es una orden de verificacion;verificacion_orden");
+            }
+            
+            if($tecnico_id==""){
+                exit("E1;Debe seleccionar un tecnico;tecnico_id");
+            }
+            
+            if($observaciones_cierre==""){
+                exit("E1;Debe escribir las observaciones del cierre;observaciones_cierre");
+            }
+            
+            $DatosOrden=$obCon->DevuelveValores("$db.ordenes_trabajo", "ID", $orden_trabajo_id); 
+            $DatosComponente=$obCon->DevuelveValores("$db.equipos_componentes", "ID", $DatosOrden["componente_id"]); 
+            
+            if($DatosComponente["frecuencia_mtto_horas"]>0){
+                if(!is_numeric($horas_ultimo_mantenimiento) or $horas_ultimo_mantenimiento<=0){
+                    exit("E1;El campo Horas Registradas debe ser un numero mayor a cero;horas_ultimo_mantenimiento");
+                }
+                
+            }
+            
+            if($DatosComponente["frecuencia_mtto_kilometros"]>0){
+                if(!is_numeric($kilometros_ultimo_mantenimiento) or $kilometros_ultimo_mantenimiento<=0){
+                    exit("E1;El campo Kilometros Registrados debe ser un numero mayor a cero;kilometros_ultimo_mantenimiento");
+                }
+                
+            }
+            
+            $obCon->cerrar_orden_trabajo_preventivo($db, $DatosOrden, $DatosComponente, $orden_trabajo_id, $fecha_cierre, $verificacion_orden, $horas_ultimo_mantenimiento, $kilometros_ultimo_mantenimiento, $tecnico_id, $observaciones_cierre, $idUser);
+            $nuevo_id=$obCon->getUniqId("ot_");
+            $fecha_programada=$obCon->SumeDiasFecha($fecha_cierre, $DatosComponente["frecuencia_mtto_dias"]);
+            $obCon->crearEditarOrdenTrabajo($db, "", $nuevo_id, $DatosOrden["tipo_mantenimiento"], $fecha_programada, $DatosOrden["maquina_id"], $DatosOrden["componente_id"], "", "", "", "", $DatosOrden["observaciones_orden"], $idUser,0);
+            
+            $sql="SELECT * FROM $db.ordenes_trabajo_tareas WHERE orden_trabajo_id='".$DatosOrden["orden_trabajo_id"]."'";
+            $Consulta=$obCon->Query($sql);
+            while($DatosConsulta=$obCon->FetchAssoc($Consulta)){
+                $obCon->agregarTareaOT($db, $nuevo_id, $DatosConsulta["tarea_id"]);
+            }
+            print("OK;Orden de trabajo creada correctamente");
+            
+        break;//Fin caso 13
     }
     
     

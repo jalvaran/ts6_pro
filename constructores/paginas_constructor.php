@@ -963,7 +963,7 @@ class PageConstruct extends html_estruct_class{
                 <!-- Custom Script Plugin -->
                 <script type="text/javascript" src="../../dist/js/custom.js"></script>
                 <!-- select 2 -->
-                <script type="text/javascript" src="../../assets/plugin/select2/js/select2.min.js"></script>
+                <script type="text/javascript" src="../../assets/plugin/select2/js/select2.js"></script>
                 <!-- Alertify Plugin 
                 <script type="text/javascript" src="../../assets/plugin/alertify/lib/alertify.min.js"></script> -->
                 ');
@@ -2423,6 +2423,7 @@ class PageConstruct extends html_estruct_class{
         function frm_form_orden_mantenimiento($db,$idEdit){
             $tab=$db.".ordenes_trabajo";
             $DatosOrden=$this->obCon->DevuelveValores($tab, "ID", $idEdit);
+            
             $orden_trabajo_id=$DatosOrden["orden_trabajo_id"];
             if($orden_trabajo_id==''){
                 $orden_trabajo_id= $this->obCon->getUniqId("ot_");
@@ -2451,7 +2452,12 @@ class PageConstruct extends html_estruct_class{
                                         $this->Coption();
 
                                         while($DatosConsulta=$this->obCon->FetchAssoc($Consulta)){
-                                            $this->option("", "", "", $DatosConsulta["ID"], "", "");
+                                            $sel=0;
+                                            if($DatosOrden["tipo_mantenimiento"]==$DatosConsulta["ID"]){
+                                                $sel=1;
+                                            }
+                                            
+                                            $this->option("", "", "", $DatosConsulta["ID"], "", "",$sel);
                                                 print($DatosConsulta["tipo_mantenimiento"]);
                                             $this->Coption();
                                         }
@@ -2464,7 +2470,7 @@ class PageConstruct extends html_estruct_class{
                         print('<div class="col-md-4">
                                     <div class="form-group">
                                         <label class="col-form-label">Fecha programada:</label>
-                                        <input id="fecha_programada" name="fecha_programada" type="date" class="form-control ts_form" value="" placeholder="Fecha programada" >
+                                        <input id="fecha_programada" name="fecha_programada" type="date" class="form-control ts_form" value="'.$DatosOrden["fecha_programada"].'" placeholder="Fecha programada" >
                                         <span class="form-text">Fecha programa para el mantenimiento</span> 
                                     </div>
                                 </div>');
@@ -2482,7 +2488,11 @@ class PageConstruct extends html_estruct_class{
                                                  FROM $db.equipos_maquinas t1 ORDER BY Nombre ASC";
                                         $Consulta=$this->obCon->Query($sql);
                                         while($DatosConsulta=$this->obCon->FetchAssoc($Consulta)){
-                                            $this->option("", "", "", $DatosConsulta["ID"], "", "");
+                                            $sel=0;
+                                            if($DatosOrden["maquina_id"]==$DatosConsulta["ID"]){
+                                                $sel=1;
+                                            }
+                                            $this->option("", "", "", $DatosConsulta["ID"], "", "",$sel);
                                                 print($DatosConsulta["Nombre"]." || Ubicación: ".$DatosConsulta["Ubicacion"]." || Serie: ".$DatosConsulta["NumeroSerie"]);
                                             $this->Coption();
                                         }
@@ -2499,13 +2509,28 @@ class PageConstruct extends html_estruct_class{
                                         $this->option("", "", "", "", "", "");
                                             print("Seleccione un componente");
                                         $this->Coption();
-                                        
+                                        $sql="SELECT t1.*                                                 
+                                                 FROM $db.equipos_componentes t1 WHERE maquina_id='".$DatosOrden["maquina_id"]."' ORDER BY Nombre ASC";
+                                        $Consulta=$this->obCon->Query($sql);
+                                        while($DatosConsulta=$this->obCon->FetchAssoc($Consulta)){
+                                            $sel=0;
+                                            if($DatosOrden["componente_id"]==$DatosConsulta["ID"]){
+                                                $sel=1;
+                                            }
+                                            $this->option("", "", "", $DatosConsulta["ID"], "", "",$sel);
+                                                print($DatosConsulta["Nombre"]." || Marca: ".$DatosConsulta["Marca"]." || Serie: ".$DatosConsulta["NumeroSerie"]);
+                                            $this->Coption();
+                                        }
                                     $this->Cselect();
                                 print('<span class="form-text">Seleccione un componente de la maquina</span>');
                             print('</div>');
                         print('</div>');
                         print('</div>');
-                        print('<div id="divOpcionesPreventivo" style="display:none">');
+                        $display="none";
+                        if($DatosOrden["tipo_mantenimiento"]==2){
+                            $display="block";
+                        }
+                        print('<div id="divOpcionesPreventivo" style="display:'.$display.'">');
                 
                             print('<div class="form-seperator-dashed"></div>');
 
@@ -2586,7 +2611,7 @@ class PageConstruct extends html_estruct_class{
                         print('<div class="col-md-12">
                                    <div class="form-group">
                                        <label class="col-form-label">Observaciones Iniciales:</label>
-                                       <textarea id="observaciones_orden" name="observaciones_orden" class="form-control ts_form" placeholder="Observaciones iniciales de la orden de trabajo" ></textarea>
+                                       <textarea id="observaciones_orden" name="observaciones_orden" class="form-control ts_form" placeholder="Observaciones iniciales de la orden de trabajo" >'.$DatosOrden["observaciones_orden"].'</textarea>
                                        <span class="form-text">Observaciones</span> 
                                    </div>
                                </div>');
@@ -2599,9 +2624,175 @@ class PageConstruct extends html_estruct_class{
                     print('<div class="form-footer text-right">');                        
                         print('<button id="btn_form_orden_trabajo" data-edit_id="'.$idEdit.'" class="btn btn-success btn-pill mr-2">Guardar</button>');
                     print('</div>');
-                    print('</div>');
+                print('</div>');
             print('</div>');
         }
+        
+        function frm_cerrar_orden_trabajo_correctivo($db,$DatosOT){
+            
+        }
+        
+        function frm_cerrar_orden_trabajo_preventivo($db,$DatosOT){
+            
+            $DatosMaquina=$this->obCon->DevuelveValores($db.".equipos_maquinas", "ID", $DatosOT["maquina_id"]);
+            $DatosComponente=$this->obCon->DevuelveValores($db.".equipos_componentes", "ID", $DatosOT["componente_id"]);
+            $orden_trabajo_id=$DatosOT["ID"];
+            print('<div class="form-body">');
+                print('<div class="form-heading">Cerrar la orden de trabajo <strong>'.$DatosOT["ID"].'</strong> para el componente: <strong>'.$DatosComponente["Nombre"].'</strong> de la maquina: <strong>'.$DatosMaquina["Nombre"].'</strong></div>');
+                    print('<div class="row">');
+                    
+                        print('<div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="col-form-label">Fecha de ejecución:</label>
+                                        <input id="fecha_cierre" name="fecha_cierre" type="date" class="form-control ts_form" value="" placeholder="Fecha de Ejecucion" >
+                                        <span class="form-text">Fecha de ejecución del mantenimiento</span> 
+                                    </div>
+                                </div>');
+                        $display="none";
+                        if($DatosComponente["frecuencia_mtto_horas"]>0 or $DatosComponente["frecuencia_mtto_kilometros"]>0){
+                             $display="block";
+                        }
+                        print('<div class="col-md-3" style="display:'.$display.'">');
+                            print('<div class="form-group">');
+                                print('<label class="col-form-label">Es una orden de verificación?</label>');
+
+                                    $this->select("verificacion_orden", "form-control", "verificacion_orden", "", "", "", "");
+                                        $this->option("", "", "", "", "", "");
+                                            print("Seleccione una opción:");
+                                        $this->Coption();
+                                        $this->option("", "", "", "NO", "", "");
+                                            print("NO");
+                                        $this->Coption();
+                                        $this->option("", "", "", "SI", "", "");
+                                            print("SI");
+                                        $this->Coption();
+                                        
+                                    $this->Cselect();
+                                print('<span class="form-text">Seleccione el técnico que ejecutó el mantenimiento</span>');
+                            print('</div>');
+                        print('</div>');
+                        
+                        $display="none";
+                        if($DatosComponente["frecuencia_mtto_horas"]>0){
+                             $display="block";
+                        }
+                        print('<div class="col-md-3" style="display:'.$display.'">
+                                                <div class="form-group">
+                                                    <label class="col-form-label">Horas que registra:</label>
+                                                    <input id="horas_ultimo_mantenimiento" name="horas_ultimo_mantenimiento" type="number" class="form-control ts_form" value="0" placeholder="Kilometros" >
+                                                    <span class="form-text">Horas registradas al momento del mantenimiento</span> 
+                                                </div>
+                                            </div>');
+                        $display="none";
+                        if($DatosComponente["frecuencia_mtto_kilometros"]>0){
+                             $display="block";
+                        }
+                        print('<div class="col-md-3" style="display:'.$display.'">
+                                                <div class="form-group">
+                                                    <label class="col-form-label">Kilometros que registra:</label>
+                                                    <input id="kilometros_ultimo_mantenimiento" name="kilometros_ultimo_mantenimiento" type="number" class="form-control ts_form" value="0" placeholder="Kilometros" >
+                                                    <span class="form-text">Kilometros registradas al momento del mantenimiento</span> 
+                                                </div>
+                                            </div>');
+                        
+                        print('<div class="col-md-12">');
+                            print('<div class="form-group">');
+                                print('<label class="col-form-label">Técnico:</label>');
+
+                                    $this->select("tecnico_id", "form-control", "tecnico_id", "", "", "", "");
+                                        $this->option("", "", "", "", "", "");
+                                            print("Seleccione un técnico");
+                                        $this->Coption();
+                                        $sql="SELECT t1.*
+                                         FROM $db.catalogo_tecnicos t1 ORDER BY NombreTecnico ASC";
+                                        $Consulta=$this->obCon->Query($sql);
+                                        while($DatosConsulta=$this->obCon->FetchAssoc($Consulta)){
+                                            $this->option("", "", "", $DatosConsulta["ID"], "", "");
+                                                print($DatosConsulta["NombreTecnico"]." || Identificacion: ".$DatosConsulta["Identificacion"]);
+                                            $this->Coption();
+                                        }
+                                    $this->Cselect();
+                                print('<span class="form-text">Seleccione el técnico que ejecutó el mantenimiento</span>');
+                            print('</div>');
+                        print('</div>');
+                                
+                        print('<div class="col-md-12">
+                                   <div class="form-group">
+                                       <label class="col-form-label">Observaciones del cierre:</label>
+                                       <textarea id="observaciones_cierre" name="observaciones_cierre" class="form-control ts_form" placeholder="Observaciones de cierre" ></textarea>
+                                       <span class="form-text">Observaciones del cierre de la orden de trabajo</span> 
+                                   </div>
+                               </div>');
+                        print('<div class="col-md-12">');
+                            print('<div class="form-group">');
+                                
+                                $this->CrearTabla();
+                                    $this->FilaTabla(16);
+
+                                        $this->ColTabla("Tareas de esta orden", 4,"C");
+                                        
+                                    $this->CierraFilaTabla();
+                                    $this->FilaTabla(16);
+
+                                        $this->ColTabla("ID", 1);
+                                        $this->ColTabla("Código", 1);
+                                        $this->ColTabla("Tarea", 1);
+                                        $this->ColTabla("Tipo Tarea", 1);
+                                        
+                                    $this->CierraFilaTabla();
+
+                                    $sql="SELECT t2.*,t1.ID as ordenes_trabajo_tareas_id, t1.estado as ordenes_trabajo_tareas_estado  
+                                            FROM ordenes_trabajo_tareas t1 INNER JOIN catalogo_tareas t2 ON t1.tarea_id=t2.ID 
+                                            WHERE t1.orden_trabajo_id='".$DatosOT["orden_trabajo_id"]."' 
+                                                ";
+                                    
+                                    $Consulta=$this->obCon->QueryExterno($sql, HOST, USER, PW, $db, "");
+                                    while($DatosTareas=$this->obCon->FetchAssoc($Consulta)){
+                                        $idItem=$DatosTareas["ordenes_trabajo_tareas_id"];
+                                        $this->FilaTabla(14);
+
+                                            $this->ColTabla($DatosTareas["ordenes_trabajo_tareas_id"], 1);
+                                            $this->ColTabla($DatosTareas["CodigoTarea"], 1);
+                                            $this->ColTabla($DatosTareas["NombreTarea"], 1);
+                                            $this->ColTabla($DatosTareas["TipoTarea"], 1);
+                                            
+                                        $this->CierraFilaTabla();
+                                    }
+                                $this->CerrarTabla();
+                            
+                            print('</div>');
+                        print('</div>');
+                        //print('<div class="form-seperator-dashed"></div>');
+                        print('<div class="col-md-6">');
+                             print('<div class="form-heading">Agregar suministro a esta orden:</div>');
+                                print('<input id="BusquedaSuministros" class="form-control" type="text" placeholder="Buscar un suministro">');
+                             print('<div id="div_suministros_busqueda">');
+                             
+                             print('</div>');
+                             
+                             
+                        print('</div>');
+                        
+                        print('<div class="col-md-6">');
+                             print('<div class="form-heading">Suministros agregados a esta orden:</div>');
+                                
+                             print('<div id="div_suministros_agregados_ot">');
+                             
+                             print('</div>');
+                             
+                             
+                        print('</div>');
+                        
+                        print('<div class="form-seperator-dashed"></div>');
+                            print('<div class="form-footer text-right">');                        
+                                print('<button id="btn_form_cierre_orden_trabajo" onclick="confirma_cierre_ot_preventiva(`'.$orden_trabajo_id.'`)" data-orden_trabajo_id="'.$orden_trabajo_id.'" class="btn btn-primary btn-pill mr-2">Cerrar Orden de Trabajo</button>');
+                            print('</div>');
+                        
+                    print('</div>');
+                print('</div>');
+            print('</div>');    
+        }
+        
         //////////////////////////////////FIN
 }
 	
