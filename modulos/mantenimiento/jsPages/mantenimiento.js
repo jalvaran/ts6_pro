@@ -274,6 +274,7 @@ function obtenerFrecuenciasComponente(componente_id=''){
                 }
                 document.getElementById('fecha_ultimo_mantenimiento').value=jsonComponente.fecha_ultimo_mantenimiento;
                 document.getElementById('frecuencia_dias').value=jsonComponente.frecuencia_mtto_dias;
+                document.getElementById('frecuencia_verificacion_dias').value=jsonComponente.frecuencia_verificacion_dias;
                 document.getElementById('frecuencia_horas').value=jsonComponente.frecuencia_mtto_horas;
                 document.getElementById('frecuencia_kilometros').value=jsonComponente.frecuencia_mtto_kilometros;
                 CalculeFechaProgramada();
@@ -605,6 +606,7 @@ function GuardarEditarOrdenTrabajo(){
     var componente_id=document.getElementById('componente_id').value;
     var fecha_ultimo_mantenimiento=document.getElementById('fecha_ultimo_mantenimiento').value;
     var frecuencia_dias=document.getElementById('frecuencia_dias').value;
+    var frecuencia_verificacion_dias=document.getElementById('frecuencia_verificacion_dias').value;
     var frecuencia_horas=document.getElementById('frecuencia_horas').value;
     var frecuencia_kilometros=document.getElementById('frecuencia_kilometros').value;
     var observaciones_orden=document.getElementById('observaciones_orden').value;
@@ -622,6 +624,7 @@ function GuardarEditarOrdenTrabajo(){
         form_data.append('frecuencia_dias', frecuencia_dias);
         form_data.append('frecuencia_horas', frecuencia_horas);
         form_data.append('frecuencia_kilometros', frecuencia_kilometros);
+        form_data.append('frecuencia_verificacion_dias', frecuencia_verificacion_dias);
         form_data.append('observaciones_orden', observaciones_orden);
                                
         $.ajax({

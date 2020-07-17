@@ -298,6 +298,7 @@ if( !empty($_REQUEST["Accion"]) ){
             $componente_id=$obCon->normalizar($_REQUEST["componente_id"]);
             $fecha_ultimo_mantenimiento=$obCon->normalizar($_REQUEST["fecha_ultimo_mantenimiento"]);
             $frecuencia_dias=$obCon->normalizar($_REQUEST["frecuencia_dias"]);
+            $frecuencia_verificacion_dias=$obCon->normalizar($_REQUEST["frecuencia_verificacion_dias"]);
             $frecuencia_horas=$obCon->normalizar($_REQUEST["frecuencia_horas"]);
             $frecuencia_kilometros=$obCon->normalizar($_REQUEST["frecuencia_kilometros"]);
             $observaciones_orden=$obCon->normalizar($_REQUEST["observaciones_orden"]);
@@ -320,6 +321,9 @@ if( !empty($_REQUEST["Accion"]) ){
             if($fecha_ultimo_mantenimiento==""){
                 exit("E1;El campo fecha de último mantenimiento no puede estar vacío;fecha_ultimo_mantenimiento");
             }
+            if(!is_numeric($frecuencia_verificacion_dias) or $frecuencia_verificacion_dias<0){
+                exit("E1;El campo Frecuencia de verificacion en Días debe ser un numero mayor o igual a cero;frecuencia_verificacion_dias");
+            }
             if(!is_numeric($frecuencia_dias) or $frecuencia_dias<0){
                 exit("E1;El campo Frecuencia en Días debe ser un numero mayor o igual a cero;frecuencia_dias");
             }
@@ -339,7 +343,7 @@ if( !empty($_REQUEST["Accion"]) ){
                     exit("E1;Debe Agregar al menos una tarea de mantenimiento;cmb_tarea_mantenimiento");
                 }
             }
-            $obCon->crearEditarOrdenTrabajo($db, $edit_id, $orden_trabajo_id, $orden_tabajo_tipo_id, $fecha_programada, $maquina_id, $componente_id, $fecha_ultimo_mantenimiento, $frecuencia_dias, $frecuencia_horas, $frecuencia_kilometros, $observaciones_orden, $idUser);
+            $obCon->crearEditarOrdenTrabajo($db, $edit_id, $orden_trabajo_id, $orden_tabajo_tipo_id, $fecha_programada, $maquina_id, $componente_id, $fecha_ultimo_mantenimiento, $frecuencia_dias,$frecuencia_verificacion_dias, $frecuencia_horas, $frecuencia_kilometros, $observaciones_orden, $idUser);
             
             print("OK;Orden de trabajo creada correctamente");
             
@@ -431,8 +435,13 @@ if( !empty($_REQUEST["Accion"]) ){
             
             $obCon->cerrar_orden_trabajo_preventivo($db, $DatosOrden, $DatosComponente, $orden_trabajo_id, $fecha_cierre, $verificacion_orden, $horas_ultimo_mantenimiento, $kilometros_ultimo_mantenimiento, $tecnico_id, $observaciones_cierre, $idUser);
             $nuevo_id=$obCon->getUniqId("ot_");
-            $fecha_programada=$obCon->SumeDiasFecha($fecha_cierre, $DatosComponente["frecuencia_mtto_dias"]);
-            $obCon->crearEditarOrdenTrabajo($db, "", $nuevo_id, $DatosOrden["tipo_mantenimiento"], $fecha_programada, $DatosOrden["maquina_id"], $DatosOrden["componente_id"], "", "", "", "", $DatosOrden["observaciones_orden"], $idUser,0);
+            if($verificacion_orden=="NO"){
+                $Dias=$DatosComponente["frecuencia_mtto_dias"];
+            }else{
+                $Dias=$DatosComponente["frecuencia_verificacion_dias"];
+            }
+            $fecha_programada=$obCon->SumeDiasFecha($fecha_cierre, $Dias);
+            $obCon->crearEditarOrdenTrabajo($db, "", $nuevo_id, $DatosOrden["tipo_mantenimiento"], $fecha_programada, $DatosOrden["maquina_id"], $DatosOrden["componente_id"], "", "","", "", "", $DatosOrden["observaciones_orden"], $idUser,0);
             
             $sql="SELECT * FROM $db.ordenes_trabajo_tareas WHERE orden_trabajo_id='".$DatosOrden["orden_trabajo_id"]."'";
             $Consulta=$obCon->Query($sql);

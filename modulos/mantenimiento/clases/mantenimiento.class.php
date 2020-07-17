@@ -37,12 +37,12 @@ class Mantenimiento extends conexion{
         $this->QueryExterno($sql, HOST, USER, PW, $db, "");
     }
     
-    public function crearEditarOrdenTrabajo($db,$edit_id,$orden_trabajo_id,$orden_tabajo_tipo_id,$fecha_programada,$maquina_id,$componente_id,$fecha_ultimo_mantenimiento,$frecuencia_dias,$frecuencia_horas,$frecuencia_kilometros,$observaciones_orden,$idUser,$ActualizaComponente=1) {
+    public function crearEditarOrdenTrabajo($db,$edit_id,$orden_trabajo_id,$orden_tabajo_tipo_id,$fecha_programada,$maquina_id,$componente_id,$fecha_ultimo_mantenimiento,$frecuencia_dias,$frecuencia_verificacion_dias,$frecuencia_horas,$frecuencia_kilometros,$observaciones_orden,$idUser,$ActualizaComponente=1) {
         $Tabla="ordenes_trabajo";
         $created=date("Y-m-d H:i:s");   
         
         $Datos["fecha_programada"]=$fecha_programada;
-        $Datos["fecha_cierre"]="";
+        $Datos["fecha_cierre"]="0000-00-00";
         $Datos["tipo_mantenimiento"]=$orden_tabajo_tipo_id;
         $Datos["orden_trabajo_id"]=$orden_trabajo_id;
         $Datos["maquina_id"]=$maquina_id;
@@ -66,7 +66,8 @@ class Mantenimiento extends conexion{
         $this->QueryExterno($sql, HOST, USER, PW, $db, "");
         if($orden_tabajo_tipo_id==2 and $ActualizaComponente==1){  //si es una orden de mantenimiento preventivo, actualizo los valores del componente
             $sql="UPDATE equipos_componentes 
-                    SET fecha_ultimo_mantenimiento='$fecha_ultimo_mantenimiento', frecuencia_mtto_dias='$frecuencia_dias', frecuencia_mtto_horas='$frecuencia_horas',frecuencia_mtto_kilometros='$frecuencia_kilometros'
+                    SET fecha_ultimo_mantenimiento='$fecha_ultimo_mantenimiento', frecuencia_mtto_dias='$frecuencia_dias', frecuencia_verificacion_dias='$frecuencia_verificacion_dias',
+                    frecuencia_mtto_horas='$frecuencia_horas',frecuencia_mtto_kilometros='$frecuencia_kilometros'
                     WHERE ID='$componente_id'
 
                          ";

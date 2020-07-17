@@ -2543,15 +2543,23 @@ class PageConstruct extends html_estruct_class{
                                                     <span class="form-text">Fecha del último mantenimiento del componente</span> 
                                                 </div>
                                             </div>');
-                                print('<div class="col-md-3">
+                                print('<div class="col-md-2">
                                                 <div class="form-group">
                                                     <label class="col-form-label">Dias:</label>
                                                     <input id="frecuencia_dias" name="frecuencia_dias" type="number" class="form-control ts_form" value="" placeholder="Dias" >
                                                     <span class="form-text">Frecuencia del mantenimiento en dias</span> 
                                                 </div>
                                             </div>');
-
+                                
                                 print('<div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label class="col-form-label">Dias de verificacion:</label>
+                                                    <input id="frecuencia_verificacion_dias" name="frecuencia_verificacion_dias" type="number" class="form-control ts_form" value="" placeholder="Dias" >
+                                                    <span class="form-text">Frecuencia para la verificacion en dias</span> 
+                                                </div>
+                                            </div>');
+
+                                print('<div class="col-md-2">
                                                 <div class="form-group">
                                                     <label class="col-form-label">Horas:</label>
                                                     <input id="frecuencia_horas" name="frecuencia_horas" type="number" class="form-control ts_form" value="" placeholder="Horas" >
@@ -2559,7 +2567,7 @@ class PageConstruct extends html_estruct_class{
                                                 </div>
                                             </div>');
 
-                                print('<div class="col-md-3">
+                                print('<div class="col-md-2">
                                                 <div class="form-group">
                                                     <label class="col-form-label">Kilometros:</label>
                                                     <input id="frecuencia_kilometros" name="frecuencia_kilometros" type="number" class="form-control ts_form" value="" placeholder="Kilometros" >
