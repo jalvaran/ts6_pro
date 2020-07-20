@@ -37,7 +37,7 @@ class Mantenimiento extends conexion{
         $this->QueryExterno($sql, HOST, USER, PW, $db, "");
     }
     
-    public function crearEditarOrdenTrabajo($db,$edit_id,$orden_trabajo_id,$orden_tabajo_tipo_id,$fecha_programada,$maquina_id,$componente_id,$fecha_ultimo_mantenimiento,$frecuencia_dias,$frecuencia_verificacion_dias,$frecuencia_horas,$frecuencia_kilometros,$observaciones_orden,$idUser,$ActualizaComponente=1) {
+    public function crearEditarOrdenTrabajo($db,$edit_id,$orden_trabajo_id,$orden_tabajo_tipo_id,$fecha_programada,$maquina_id,$componente_id,$fecha_ultimo_mantenimiento,$frecuencia_dias,$ruta_verificacion_id,$frecuencia_ruta_verificacion,$frecuencia_horas,$frecuencia_kilometros,$observaciones_orden,$idUser,$ActualizaComponente=1) {
         $Tabla="ordenes_trabajo";
         $created=date("Y-m-d H:i:s");   
         
@@ -48,6 +48,8 @@ class Mantenimiento extends conexion{
         $Datos["maquina_id"]=$maquina_id;
         $Datos["componente_id"]=$componente_id;
         $Datos["observaciones_orden"]=$observaciones_orden;
+        $Datos["ruta_verificacion_id"]=$ruta_verificacion_id;
+        $Datos["frecuencia_ruta_verificacion"]=$frecuencia_ruta_verificacion;
         $Datos["observaciones_cierre"]="";
         $Datos["observaciones_anulacion"]="";
         $Datos["tecnico_id"]=0;
@@ -66,7 +68,7 @@ class Mantenimiento extends conexion{
         $this->QueryExterno($sql, HOST, USER, PW, $db, "");
         if($orden_tabajo_tipo_id==2 and $ActualizaComponente==1){  //si es una orden de mantenimiento preventivo, actualizo los valores del componente
             $sql="UPDATE equipos_componentes 
-                    SET fecha_ultimo_mantenimiento='$fecha_ultimo_mantenimiento', frecuencia_mtto_dias='$frecuencia_dias', frecuencia_verificacion_dias='$frecuencia_verificacion_dias',
+                    SET fecha_ultimo_mantenimiento='$fecha_ultimo_mantenimiento', frecuencia_mtto_dias='$frecuencia_dias', 
                     frecuencia_mtto_horas='$frecuencia_horas',frecuencia_mtto_kilometros='$frecuencia_kilometros'
                     WHERE ID='$componente_id'
 
@@ -74,7 +76,7 @@ class Mantenimiento extends conexion{
             $this->QueryExterno($sql, HOST, USER, PW, $db, "");
         }
         
-        if($orden_tabajo_tipo_id==1){//Si es una orden de trabajo de mantenimiento correctivo borro las tareas que se hubiesen podido agregar
+        if($orden_tabajo_tipo_id==1 or $orden_tabajo_tipo_id==3){//Si es una orden de trabajo de mantenimiento correctivo o una ruta de verificacion borro las tareas que se hubiesen podido agregar
             $this->BorraReg($db.".ordenes_trabajo_tareas", "orden_trabajo_id", $orden_trabajo_id);
         }
     }
@@ -93,56 +95,115 @@ class Mantenimiento extends conexion{
         $this->QueryExterno($sql, HOST, USER, PW, $db, "");
     }
     
-    public function cerrar_orden_trabajo_preventivo($db,$DatosOrden,$DatosComponente,$orden_trabajo_id,$fecha_cierre,$verificacion_orden,$horas_ultimo_mantenimiento,$kilometros_ultimo_mantenimiento,$tecnico_id,$observaciones_cierre,$idUser) {
+    public function agregarFallaOT($db, $orden_trabajo_id, $componente_id, $falla_id, $causa_falla_id, $idUser) {
+        $Tabla="ordenes_trabajo_fallas";
+        $created=date("Y-m-d H:i:s");        
+        $Datos["orden_trabajo_id"]=$orden_trabajo_id;
+        $Datos["componente_id"]=$componente_id;
+        $Datos["falla_id"]=$falla_id;        
+        $Datos["causa_falla_id"]=$causa_falla_id;        
+        $Datos["idUser"]=$idUser;
+        $Datos["created"]=$created;
+        $sql=$this->getSQLInsert($Tabla, $Datos);
+        $this->QueryExterno($sql, HOST, USER, PW, $db, "");
+    }
+    
+    public function agregarVerificacionOT($db, $orden_trabajo_id, $maquina_id, $horas_trabajo, $kilometros_trabajo, $idUser) {
+        $Tabla="ordenes_trabajo_maquinas_verificadas";
+        $created=date("Y-m-d H:i:s");        
+        $Datos["orden_trabajo_id"]=$orden_trabajo_id;
+        $Datos["maquina_id"]=$maquina_id;
+        $Datos["horas_trabajo"]=$horas_trabajo;        
+        $Datos["kilometros_trabajo"]=$kilometros_trabajo;    
+        $Datos["idUser"]=$idUser;
+        $Datos["created"]=$created;
+        $sql=$this->getSQLInsert($Tabla, $Datos);
+        $this->QueryExterno($sql, HOST, USER, PW, $db, "");
+    }
+    
+    
+    public function cerrar_orden_trabajo_preventivo($db,$DatosOrden,$DatosComponente,$orden_trabajo_id,$fecha_cierre,$horas_ultimo_mantenimiento,$kilometros_ultimo_mantenimiento,$tecnico_id,$observaciones_cierre,$tiempo_parada,$idUser) {
         
-        $sql="UPDATE ordenes_trabajo SET fecha_cierre='$fecha_cierre', 
+        $sql="UPDATE ordenes_trabajo SET fecha_cierre='$fecha_cierre', tiempo_parada='$tiempo_parada',tiempo_dedicado='$tiempo_parada',
                 observaciones_cierre='$observaciones_cierre',tecnico_id='$tecnico_id', usuario_cierre_id='$idUser',estado=3 
                WHERE ID='$orden_trabajo_id';
                 ";
         $this->QueryExterno($sql, HOST, USER, PW, $db, "");
         
-        if($verificacion_orden=='NO'){
-            $setFrecuenciaHoras="";
-            if($DatosComponente["frecuencia_mtto_horas"]>0){
-                $setFrecuenciaHoras="horas_ultimo_mantenimiento='$horas_ultimo_mantenimiento',";
-            }
-            $setFrecuenciaKilometros="";
-            if($DatosComponente["frecuencia_mtto_kilometros"]>0){
-                $setFrecuenciaKilometros="kilometros_ultimo_mantenimiento='$kilometros_ultimo_mantenimiento',";
-            }
-            $diasDiferencia=$this->obtenerDiferenciaFechasDias($fecha_cierre , date("Y-m-d"));
+       
+        $setFrecuenciaHoras="";
+        if($DatosComponente["frecuencia_mtto_horas"]>0){
+            $setFrecuenciaHoras="horas_ultimo_mantenimiento='$horas_ultimo_mantenimiento',";
+            $setFrecuenciaHoras.="horas_trabajo='$horas_ultimo_mantenimiento',";
+        }
+        $setFrecuenciaKilometros="";
+        if($DatosComponente["frecuencia_mtto_kilometros"]>0){
+            $setFrecuenciaKilometros="kilometros_ultimo_mantenimiento='$kilometros_ultimo_mantenimiento',";
+            $setFrecuenciaKilometros.="kilometros_trabajo='$kilometros_ultimo_mantenimiento',";
+        }
+        $diasDiferencia=$this->obtenerDiferenciaFechasDias($fecha_cierre , date("Y-m-d"));
+
+        $sql="UPDATE equipos_componentes SET fecha_ultimo_mantenimiento='$fecha_cierre',
+                dias_ultimo_mantenimiento='$diasDiferencia',
+                $setFrecuenciaHoras
+                $setFrecuenciaKilometros
+                usuario_id_update='$idUser'    
+                WHERE maquina_id='".$DatosComponente["maquina_id"]."'
+                   ";
+        $this->QueryExterno($sql, HOST, USER, PW, $db, "");
+        
+        
+        
+        
+    }
+    
+    
+    public function cerrar_orden_trabajo_correctiva($db, $orden_trabajo_id, $fecha_cierre, $tecnico_id, $observaciones_cierre,$tiempo_parada, $idUser) {
+        
+        $sql="UPDATE ordenes_trabajo SET fecha_cierre='$fecha_cierre', tiempo_parada='$tiempo_parada',tiempo_dedicado='$tiempo_parada',
+                observaciones_cierre='$observaciones_cierre',tecnico_id='$tecnico_id', usuario_cierre_id='$idUser',estado=3 
+               WHERE ID='$orden_trabajo_id';
+                ";
+        $this->QueryExterno($sql, HOST, USER, PW, $db, "");
+        
+        
+    }
+    
+    public function cerrar_orden_trabajo_verificacion($db, $orden_trabajo_id, $fecha_cierre, $tecnico_id, $observaciones_cierre,$tiempo_dedicado, $idUser) {
+        
+        $sql="UPDATE ordenes_trabajo SET fecha_cierre='$fecha_cierre', tiempo_dedicado='$tiempo_dedicado',
+                observaciones_cierre='$observaciones_cierre',tecnico_id='$tecnico_id', usuario_cierre_id='$idUser',estado=3 
+               WHERE ID='$orden_trabajo_id';
+                ";
+        $this->QueryExterno($sql, HOST, USER, PW, $db, "");
+        
+        $sql="SELECT * FROM ordenes_trabajo_maquinas_verificadas WHERE orden_trabajo_id='$orden_trabajo_id'";
+        $Consulta=$this->QueryExterno($sql, HOST, USER, PW, $db, "");
+        while($DatosConsulta=$this->FetchAssoc($Consulta)){
+            $maquina_id=$DatosConsulta["maquina_id"];
+            $horas_trabajo=$DatosConsulta["horas_trabajo"];
+            $kilometros_trabajo=$DatosConsulta["kilometros_trabajo"];
             
-            $sql="UPDATE equipos_componentes SET fecha_ultimo_mantenimiento='$fecha_cierre',
-                    dias_ultimo_mantenimiento='$diasDiferencia',
-                    $setFrecuenciaHoras
-                    $setFrecuenciaKilometros
-                    usuario_id_update='$idUser'    
-                    WHERE ID='".$DatosComponente["ID"]."'
-                       ";
+            $sql="UPDATE equipos_componentes SET horas_trabajo='$horas_trabajo', kilometros_trabajo='$kilometros_trabajo' WHERE maquina_id='$maquina_id'";
             $this->QueryExterno($sql, HOST, USER, PW, $db, "");
         }
+    }
+    
+    
+    public function RegistreAdjuntoOT($db,$orden_trabajo_id, $destino, $Tamano, $NombreArchivo, $Extension, $idUser) {
         
-        if($verificacion_orden=='SI'){
-            $setFrecuenciaHoras="";
-            if($DatosComponente["frecuencia_mtto_horas"]>0){
-                $setFrecuenciaHoras="horas_trabajo='$horas_ultimo_mantenimiento',";
-            }
-            $setFrecuenciaKilometros="";
-            if($DatosComponente["frecuencia_mtto_kilometros"]>0){
-                $setFrecuenciaKilometros="kilometros_trabajo='$kilometros_ultimo_mantenimiento',";
-            }
-            if($DatosComponente["frecuencia_mtto_kilometros"]>0 or $DatosComponente["frecuencia_mtto_horas"]>0){
-                $sql="UPDATE equipos_componentes SET  
-                    $setFrecuenciaHoras
-                    $setFrecuenciaKilometros
-                    usuario_id_update='$idUser'     
-                    WHERE ID='".$DatosComponente["ID"]."'
-                       ";
-                $this->QueryExterno($sql, HOST, USER, PW, $db, "");
-            }
-            
-        }
+        $tab="ordenes_trabajo_adjuntos";
         
+        $Datos["orden_trabajo_id"]=$orden_trabajo_id;
+        
+        $Datos["Ruta"]=$destino;    
+        $Datos["NombreArchivo"]=$NombreArchivo;    
+        $Datos["Extension"]=$Extension;    
+        $Datos["Tamano"]=$Tamano; 
+        $Datos["idUser"]=$idUser;		
+        $Datos["created"]=date("Y-m-d H:i:s");	
+        $sql=$this->getSQLInsert($tab, $Datos);
+        $this->QueryExterno($sql, HOST, USER, PW, $db, "");
     }
     
     /**

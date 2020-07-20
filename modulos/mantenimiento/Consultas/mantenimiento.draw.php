@@ -305,6 +305,10 @@ if( !empty($_REQUEST["Accion"]) ){
                 $css->frm_cerrar_orden_trabajo_preventivo($db, $DatosOT);
             }
             
+            if($DatosOT["tipo_mantenimiento"]==3){
+                $css->frm_cerrar_orden_trabajo_ruta_verificacion($db, $DatosOT);
+            }
+            
         break;//Fin caso 4    
         
         case 5://Buscar una parte o suministro para agregar a una orden de trabajo
@@ -396,6 +400,147 @@ if( !empty($_REQUEST["Accion"]) ){
                 
             $css->CerrarTabla();
         break;// fin caso 6
+        
+        case 7://listar las fallas agregadas a una orden de trabajo
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $orden_trabajo_id=$obCon->normalizar($_REQUEST["orden_trabajo_id"]);
+            $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
+            $db=$DatosEmpresa["db"];
+            $dbPrincipal=DB;
+            $sql="SELECT t1.*,
+                    (SELECT Falla FROM $dbPrincipal.catalogo_fallas t2 WHERE t2.ID=t1.falla_id LIMIT 1) AS Falla,
+                    (SELECT Causa FROM $dbPrincipal.catalogo_causas t2 WHERE t2.ID=t1.causa_falla_id LIMIT 1) AS Causa,
+                    (SELECT Nombre FROM $db.equipos_componentes t2 WHERE t2.ID=t1.componente_id LIMIT 1) AS Nombre,
+                    (SELECT Marca FROM $db.equipos_componentes t2 WHERE t2.ID=t1.componente_id LIMIT 1) AS Marca,
+                    (SELECT NumeroSerie FROM $db.equipos_componentes t2 WHERE t2.ID=t1.componente_id LIMIT 1) AS NumeroSerie 
+                    
+                     FROM $db.ordenes_trabajo_fallas t1 
+                    
+                    WHERE t1.orden_trabajo_id='$orden_trabajo_id'  
+                    
+                    ";
+                        
+            $Consulta=$obCon->Query($sql);
+            $css->CrearTabla();
+                $css->FilaTabla(14);
+                    $css->ColTabla("Lista de fallas agregadas a esta OT", 6,"C");
+                    
+                    
+                $css->CierraFilaTabla();
+                $css->FilaTabla(14);
+                    $css->ColTabla("ID", 1);
+                    $css->ColTabla("Componente", 1);
+                    $css->ColTabla("Marca", 1);
+                    $css->ColTabla("NumeroSerie", 1);
+                    $css->ColTabla("Falla", 1);
+                    $css->ColTabla("Causa", 1);
+                    
+                $css->CierraFilaTabla();
+                
+                while($DatosConsulta=$obCon->FetchAssoc($Consulta)){
+                    $idItem=$DatosConsulta["ID"];
+                    $css->FilaTabla(14);
+                        $css->ColTabla($DatosConsulta["Nombre"], 1);
+                        $css->ColTabla($DatosConsulta["Marca"], 1);
+                        $css->ColTabla($DatosConsulta["NumeroSerie"], 1);
+                        $css->ColTabla($DatosConsulta["Falla"], 1);
+                        $css->ColTabla($DatosConsulta["Causa"], 1);
+                        
+                        print('<td>');
+                            print('<li class="far fa-times-circle" style="color:red;font-size:25px;cursor:pointer" onclick=eliminarItem(`3`,`'.$idItem.'`)></li>');
+                        print('</td>');
+                    $css->CierraFilaTabla();
+                }
+                
+            $css->CerrarTabla();
+        break;// fin caso 7
+        
+        case 8: //Dibuja las verificaciones realizadas a una maquina
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $orden_trabajo_id=$obCon->normalizar($_REQUEST["orden_trabajo_id"]);
+            $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
+            $db=$DatosEmpresa["db"];
+            
+            $css->CrearTabla();
+                $css->FilaTabla(16);
+                
+                    $css->ColTabla("ID", 1);
+                    $css->ColTabla("Maquina", 1);
+                    $css->ColTabla("Horas de Trabajo", 1);
+                    $css->ColTabla("Kilometros de trabajo", 1);
+                    $css->ColTabla("Eliminar", 1);
+                $css->CierraFilaTabla();
+                
+                $sql="SELECT t2.*,t1.ID as verificacion_id,t1.horas_trabajo, t1.kilometros_trabajo, 
+                        (SELECT NombreSeccion FROM catalogo_secciones t3 WHERE t3.ID=t2.ubicacion_id LIMIT 1) as Ubicacion 
+                        FROM ordenes_trabajo_maquinas_verificadas t1 INNER JOIN equipos_maquinas t2 ON t1.maquina_id=t2.ID 
+                        WHERE t1.orden_trabajo_id='$orden_trabajo_id' 
+                            ";
+                $Consulta=$obCon->QueryExterno($sql, HOST, USER, PW, $db, "");
+                while($DatosConsulta=$obCon->FetchAssoc($Consulta)){
+                    $idItem=$DatosConsulta["verificacion_id"];
+                    $Nombre=$DatosConsulta["Nombre"]." || Marca: <strong>".$DatosConsulta["Marca"]."</strong> || Ubicación: ".$DatosConsulta["Ubicacion"];
+                    $css->FilaTabla(14);
+                
+                        $css->ColTabla($DatosConsulta["verificacion_id"], 1);
+                        $css->ColTabla($Nombre, 1);
+                        $css->ColTabla($DatosConsulta["horas_trabajo"], 1);
+                        $css->ColTabla($DatosConsulta["kilometros_trabajo"], 1);
+                        print('<td style="text-align:center;color:red;font-size:18px;">');
+                            print('<li class="far fa-times-circle" style="cursor:pointer;" onclick="eliminarItem(`4`,`'.$idItem.'`)"></li>');
+                        print('</td>');
+                    $css->CierraFilaTabla();
+                }
+            $css->CerrarTabla();
+            
+            
+        break; //Fin caso 8
+        
+        case 9: //Dibuja los adjuntos en una orden de trabajo
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $orden_trabajo_id=$obCon->normalizar($_REQUEST["orden_trabajo_id"]);
+            $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
+            $db=$DatosEmpresa["db"];
+            $DatosOT=$obCon->DevuelveValores("$db.ordenes_trabajo", "orden_trabajo_id", $orden_trabajo_id);
+            $css->CrearTabla();
+                $css->FilaTabla(16);
+                
+                    $css->ColTabla("Adjuntos de la OT ".$DatosOT["ID"], 4,"C");
+                    
+                $css->CierraFilaTabla();
+                $css->FilaTabla(16);
+                
+                    $css->ColTabla("ID", 1);
+                    $css->ColTabla("Nombre de Archivo", 1);
+                    //$css->ColTabla("Link", 1);                    
+                    $css->ColTabla("Eliminar", 1);
+                $css->CierraFilaTabla();
+                
+                $sql="SELECT t1.*
+                        FROM ordenes_trabajo_adjuntos t1 
+                        WHERE t1.orden_trabajo_id='$orden_trabajo_id' 
+                            ";
+                $Consulta=$obCon->QueryExterno($sql, HOST, USER, PW, $db, "");
+                while($DatosConsulta=$obCon->FetchAssoc($Consulta)){
+                    $idItem=$DatosConsulta["ID"];
+                    $Nombre=$DatosConsulta["NombreArchivo"];
+                    $css->FilaTabla(14);
+                
+                        $css->ColTabla($idItem, 1);
+                        //$css->ColTabla($Nombre, 1);
+                        print('<td style="text-align:center;color:blue;font-size:18px;">');
+                            $Ruta= "../../".str_replace("../", "", $DatosConsulta["Ruta"]);
+                            print('<a href="'.$Ruta.'" target="blank">'.$Nombre.' <li class="fa fa-paperclip"></li></a>');
+                        print('</td>');
+                        print('<td style="text-align:center;color:red;font-size:18px;">');
+                            print('<li class="far fa-times-circle" style="cursor:pointer;" onclick="eliminarItem(`5`,`'.$idItem.'`)"></li>');
+                        print('</td>');
+                    $css->CierraFilaTabla();
+                }
+            $css->CerrarTabla();
+            
+            
+        break; //Fin caso 9
                      
     }
     

@@ -134,12 +134,24 @@ function OcultarMostrarOpcionesPreventivo(){
     if(tipo_mantenimiento=='1' || tipo_mantenimiento==''){
         
         document.getElementById('divOpcionesPreventivo').style.display="none";
+        document.getElementById('divMaquinas').style.display="block";
+        document.getElementById('divOpcionesRutaVerificacion').style.display="none";
     }
 
     if(tipo_mantenimiento == '2'){
         
         document.getElementById('divOpcionesPreventivo').style.display="block";
+        document.getElementById('divMaquinas').style.display="block";
+        document.getElementById('divOpcionesRutaVerificacion').style.display="none";
     }
+    
+    if(tipo_mantenimiento == '3'){
+        
+        document.getElementById('divOpcionesPreventivo').style.display="none";
+        document.getElementById('divMaquinas').style.display="none";
+        document.getElementById('divOpcionesRutaVerificacion').style.display="block";
+    }
+    
 }
         
 function AgregarTareaOT(){
@@ -219,6 +231,15 @@ function eliminarItem(tabla_id,item_id){
                 if(tabla_id==2){
                     listar_insumos_agregados_ot();
                 }
+                if(tabla_id==3){
+                    listar_fallas_agregadas_ot();
+                }
+                if(tabla_id==4){
+                    listar_verificacion_agregadas_ot();
+                }
+                if(tabla_id==5){
+                    listar_adjuntos_ot();
+                }
                 
             }else if(respuestas[0]=="E1"){  
                 toastr.error(respuestas[1],'',2000);
@@ -274,7 +295,7 @@ function obtenerFrecuenciasComponente(componente_id=''){
                 }
                 document.getElementById('fecha_ultimo_mantenimiento').value=jsonComponente.fecha_ultimo_mantenimiento;
                 document.getElementById('frecuencia_dias').value=jsonComponente.frecuencia_mtto_dias;
-                document.getElementById('frecuencia_verificacion_dias').value=jsonComponente.frecuencia_verificacion_dias;
+                //document.getElementById('frecuencia_verificacion_dias').value=jsonComponente.frecuencia_verificacion_dias;
                 document.getElementById('frecuencia_horas').value=jsonComponente.frecuencia_mtto_horas;
                 document.getElementById('frecuencia_kilometros').value=jsonComponente.frecuencia_mtto_kilometros;
                 CalculeFechaProgramada();
@@ -409,7 +430,7 @@ function frm_crear_editar_registro(edit_id=''){
         type: 'post', // se especifica que metodo de envio se utilizara normalmente y por seguridad se utiliza el post
         beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
             document.getElementById(idDiv).innerHTML='<div id="GifProcess">Procesando...<br><img   src="../../images/loader.gif" alt="Cargando" height="100" width="100"></div>';
-            add_events_frms();
+                        
         },
         complete: function(){
            
@@ -420,6 +441,7 @@ function frm_crear_editar_registro(edit_id=''){
             add_events_frms();
             listarTareasOT();
             obtenerFrecuenciasComponente();
+            add_events_dropzone_ot();
         },
         error: function (xhr, ajaxOptions, thrownError) {// si hay error se ejecuta la funcion
             
@@ -460,6 +482,9 @@ function form_cerrar_orden(orden_trabajo_id){
             document.getElementById(idDiv).innerHTML=data; //La respuesta del servidor la dibujo en el div DivTablasBaseDatos                      
             add_events_close_order();
             listar_insumos_agregados_ot();
+            listar_fallas_agregadas_ot();
+            listar_verificacion_agregadas_ot();
+            add_events_dropzone_ot();
         },
         error: function (xhr, ajaxOptions, thrownError) {// si hay error se ejecuta la funcion
             
@@ -540,8 +565,9 @@ function CerrarOrdenTrabajoPreventiva(orden_trabajo_id){
     var empresa_id=document.getElementById('empresa_id').value;
         
     var fecha_cierre=document.getElementById('fecha_cierre').value;
-    var verificacion_orden=document.getElementById('verificacion_orden').value;
+    //var verificacion_orden=document.getElementById('verificacion_orden').value;
     var horas_ultimo_mantenimiento=document.getElementById('horas_ultimo_mantenimiento').value;
+    var tiempo_parada=document.getElementById('tiempo_parada').value;
     var kilometros_ultimo_mantenimiento=document.getElementById('kilometros_ultimo_mantenimiento').value;
     var tecnico_id=document.getElementById('tecnico_id').value;
     var observaciones_cierre=document.getElementById('observaciones_cierre').value;
@@ -551,9 +577,173 @@ function CerrarOrdenTrabajoPreventiva(orden_trabajo_id){
         form_data.append('empresa_id', empresa_id);
         form_data.append('orden_trabajo_id', orden_trabajo_id);
         form_data.append('fecha_cierre', fecha_cierre);
-        form_data.append('verificacion_orden', verificacion_orden);
+        //form_data.append('verificacion_orden', verificacion_orden);
         form_data.append('horas_ultimo_mantenimiento', horas_ultimo_mantenimiento);
+        form_data.append('tiempo_parada', tiempo_parada);
         form_data.append('kilometros_ultimo_mantenimiento', kilometros_ultimo_mantenimiento);
+        form_data.append('tecnico_id', tecnico_id);
+        form_data.append('observaciones_cierre', observaciones_cierre);
+                                       
+        $.ajax({
+        url: urlQuery,
+        //dataType: 'json',
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post',
+        success: function(data){
+            document.getElementById(btnEnviar).disabled=false;
+            document.getElementById(btnEnviar).value="Enviar";
+            var respuestas = data.split(';'); //Armamos un vector separando los punto y coma de la cadena de texto
+            if(respuestas[0]=="OK"){ 
+                toastr.success(respuestas[1]);                
+                dibujeListadoSegunID();                
+            }else if(respuestas[0]=="E1"){  
+                toastr.error(respuestas[1],'',2000);
+                MarqueErrorElemento(respuestas[2]);
+            }else{
+                toastr.error(data,2000);          
+            }
+                    
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            document.getElementById(btnEnviar).disabled=false;
+            document.getElementById(btnEnviar).value="Enviar";
+            alert(xhr.status);
+            alert(thrownError);
+          }
+      });
+}
+
+function confirma_cierre_ot_correctiva(orden_trabajo_id){
+    swal({   
+            title: "Seguro que desea guardar?",   
+            //text: "You will not be able to recover this imaginary file!",   
+            type: "warning",   
+            showCancelButton: true,  
+            
+            confirmButtonColor: "#DD6B55",   
+            confirmButtonText: "Claro que Siii!",   
+            cancelButtonText: "Espera voy a revisar algo!",   
+            closeOnConfirm: true,   
+            closeOnCancel: true 
+        }, function(isConfirm){   
+            if (isConfirm) {   
+                
+                
+                CerrarOrdenTrabajoCorrectiva(orden_trabajo_id);
+              
+                               
+                              
+            } else {     
+                swal("Cancelado", "Se ha cancelado el proceso :)", "error");   
+            } 
+        });
+}
+
+function CerrarOrdenTrabajoCorrectiva(orden_trabajo_id){
+    
+    urlQuery='procesadores/mantenimiento.process.php';    
+    
+    var btnEnviar = "btn_form_cierre_orden_trabajo";
+    document.getElementById(btnEnviar).disabled=true;
+    document.getElementById(btnEnviar).value="Enviando...";
+    
+    var empresa_id=document.getElementById('empresa_id').value;        
+    var fecha_cierre=document.getElementById('fecha_cierre').value;   
+    var tiempo_parada=document.getElementById('tiempo_parada').value;    
+    var tecnico_id=document.getElementById('tecnico_id').value;
+    var observaciones_cierre=document.getElementById('observaciones_cierre').value;
+            
+    var form_data = new FormData();
+        form_data.append('Accion', '15');  
+        form_data.append('empresa_id', empresa_id);
+        form_data.append('orden_trabajo_id', orden_trabajo_id);
+        form_data.append('fecha_cierre', fecha_cierre);        
+        form_data.append('tiempo_parada', tiempo_parada);        
+        form_data.append('tecnico_id', tecnico_id);
+        form_data.append('observaciones_cierre', observaciones_cierre);
+                                       
+        $.ajax({
+        url: urlQuery,
+        //dataType: 'json',
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post',
+        success: function(data){
+            document.getElementById(btnEnviar).disabled=false;
+            document.getElementById(btnEnviar).value="Enviar";
+            var respuestas = data.split(';'); //Armamos un vector separando los punto y coma de la cadena de texto
+            if(respuestas[0]=="OK"){ 
+                toastr.success(respuestas[1]);                
+                dibujeListadoSegunID();                
+            }else if(respuestas[0]=="E1"){  
+                toastr.error(respuestas[1],'',2000);
+                MarqueErrorElemento(respuestas[2]);
+            }else{
+                toastr.error(data,2000);          
+            }
+                    
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            document.getElementById(btnEnviar).disabled=false;
+            document.getElementById(btnEnviar).value="Enviar";
+            alert(xhr.status);
+            alert(thrownError);
+          }
+      });
+}
+
+
+function confirma_cierre_ot_verificacion(orden_trabajo_id){
+    swal({   
+            title: "Seguro que desea guardar?",   
+            //text: "You will not be able to recover this imaginary file!",   
+            type: "warning",   
+            showCancelButton: true,  
+            
+            confirmButtonColor: "#DD6B55",   
+            confirmButtonText: "Claro que Siii!",   
+            cancelButtonText: "Espera voy a revisar algo!",   
+            closeOnConfirm: true,   
+            closeOnCancel: true 
+        }, function(isConfirm){   
+            if (isConfirm) {   
+                
+                
+                CerrarOrdenTrabajoVerificacion(orden_trabajo_id);
+              
+                               
+                              
+            } else {     
+                swal("Cancelado", "Se ha cancelado el proceso :)", "error");   
+            } 
+        });
+}
+
+function CerrarOrdenTrabajoVerificacion(orden_trabajo_id){
+    
+    urlQuery='procesadores/mantenimiento.process.php';    
+    
+    var btnEnviar = "btn_form_cierre_orden_trabajo";
+    document.getElementById(btnEnviar).disabled=true;
+    document.getElementById(btnEnviar).value="Enviando...";
+    
+    var empresa_id=document.getElementById('empresa_id').value;        
+    var fecha_cierre=document.getElementById('fecha_cierre').value;   
+    var tiempo_dedicado=document.getElementById('tiempo_dedicado').value;    
+    var tecnico_id=document.getElementById('tecnico_id').value;
+    var observaciones_cierre=document.getElementById('observaciones_cierre').value;
+            
+    var form_data = new FormData();
+        form_data.append('Accion', '17');  
+        form_data.append('empresa_id', empresa_id);
+        form_data.append('orden_trabajo_id', orden_trabajo_id);
+        form_data.append('fecha_cierre', fecha_cierre);        
+        form_data.append('tiempo_dedicado', tiempo_dedicado);        
         form_data.append('tecnico_id', tecnico_id);
         form_data.append('observaciones_cierre', observaciones_cierre);
                                        
@@ -606,7 +796,10 @@ function GuardarEditarOrdenTrabajo(){
     var componente_id=document.getElementById('componente_id').value;
     var fecha_ultimo_mantenimiento=document.getElementById('fecha_ultimo_mantenimiento').value;
     var frecuencia_dias=document.getElementById('frecuencia_dias').value;
-    var frecuencia_verificacion_dias=document.getElementById('frecuencia_verificacion_dias').value;
+    //var frecuencia_verificacion_dias=document.getElementById('frecuencia_verificacion_dias').value;
+    var ruta_verificacion_id=document.getElementById('ruta_verificacion_id').value;
+    var frecuencia_ruta_verificacion=document.getElementById('frecuencia_ruta_verificacion').value;
+    
     var frecuencia_horas=document.getElementById('frecuencia_horas').value;
     var frecuencia_kilometros=document.getElementById('frecuencia_kilometros').value;
     var observaciones_orden=document.getElementById('observaciones_orden').value;
@@ -624,7 +817,8 @@ function GuardarEditarOrdenTrabajo(){
         form_data.append('frecuencia_dias', frecuencia_dias);
         form_data.append('frecuencia_horas', frecuencia_horas);
         form_data.append('frecuencia_kilometros', frecuencia_kilometros);
-        form_data.append('frecuencia_verificacion_dias', frecuencia_verificacion_dias);
+        form_data.append('ruta_verificacion_id', ruta_verificacion_id);
+        form_data.append('frecuencia_ruta_verificacion', frecuencia_ruta_verificacion);
         form_data.append('observaciones_orden', observaciones_orden);
                                
         $.ajax({
@@ -850,8 +1044,11 @@ function AgregarInsumoAOrdenTrabajo(insumo_id,orden_trabajo_id){
 
 
 function listar_insumos_agregados_ot(orden_trabajo_id=''){
+    
     var idDiv="div_suministros_agregados_ot";
-       
+    if($('#'+idDiv).length<=0){
+        return;
+    }   
     var empresa_id=document.getElementById('empresa_id').value;
     if(orden_trabajo_id==""){
         var orden_trabajo_id=$("#btn_form_cierre_orden_trabajo").data("orden_trabajo_id");
@@ -872,6 +1069,278 @@ function listar_insumos_agregados_ot(orden_trabajo_id=''){
         type: 'post', // se especifica que metodo de envio se utilizara normalmente y por seguridad se utiliza el post
         beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
             //document.getElementById(idDiv).innerHTML='<div id="GifProcess">Procesando...<br><img   src="../../images/loader.gif" alt="Cargando" height="100" width="100"></div>';
+            
+        },
+        complete: function(){
+           
+        },
+        success: function(data){    
+            
+            document.getElementById(idDiv).innerHTML=data; //La respuesta del servidor la dibujo en el div            
+            
+        },
+        error: function (xhr, ajaxOptions, thrownError) {// si hay error se ejecuta la funcion
+            
+            var alertMensanje='<div class="alert alert-danger mt-3"><h4 class="alert-heading">Error!</h4><p>Parece que no hay conexión con el servidor.</p><hr><p class="mb-0">Intentalo de nuevo.</p></div>';
+            document.getElementById(idDiv).innerHTML=alertMensanje;
+            swal("Error de Conexión");
+          }
+      });
+}
+
+
+function agregar_falla_ot_correctivo(orden_trabajo_id){
+    
+    var btnEnviar = "btn_agregar_falla_ot_correctivo";
+    document.getElementById(btnEnviar).disabled=true;
+        
+    var componente_id=document.getElementById('componente_id').value;    
+    var falla_id=document.getElementById('falla_id').value;
+    var causa_falla_id=document.getElementById('causa_falla_id').value;
+    var empresa_id=document.getElementById('empresa_id').value; 
+    urlQuery='procesadores/mantenimiento.process.php';  
+    
+    var form_data = new FormData();
+        form_data.append('Accion', '14');   
+        form_data.append('empresa_id', empresa_id);
+        form_data.append('componente_id', componente_id);
+        form_data.append('orden_trabajo_id', orden_trabajo_id);
+        form_data.append('falla_id', falla_id);    
+        form_data.append('causa_falla_id', causa_falla_id);
+        $.ajax({
+        url: urlQuery,
+        //dataType: 'json',
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post',
+        success: function(data){
+            document.getElementById(btnEnviar).disabled=false;
+            var respuestas = data.split(';'); //Armamos un vector separando los punto y coma de la cadena de texto
+            if(respuestas[0]=="OK"){ 
+                toastr.success(respuestas[1]);
+                
+                listar_fallas_agregadas_ot(orden_trabajo_id);
+                
+            }else if(respuestas[0]=="E1"){  
+                toastr.error(respuestas[1],'',2000);
+                MarqueErrorElemento(respuestas[2]);
+            }else{
+                toastr.error(data,2000);          
+            }
+                    
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            document.getElementById(btnEnviar).disabled=false;
+            alert(xhr.status);
+            alert(thrownError);
+          }
+      });
+}
+
+
+function listar_fallas_agregadas_ot(orden_trabajo_id=''){
+    var idDiv="div_fallas_ot";
+    if($('#'+idDiv).length<=0){
+        return;
+    }    
+    var empresa_id=document.getElementById('empresa_id').value;
+    if(orden_trabajo_id==""){
+        var orden_trabajo_id=$("#btn_form_cierre_orden_trabajo").data("orden_trabajo_id");
+    }
+    urlQuery='Consultas/mantenimiento.draw.php';    
+    var form_data = new FormData();
+        form_data.append('Accion', 7);        
+        form_data.append('orden_trabajo_id', orden_trabajo_id);
+        form_data.append('empresa_id', empresa_id);
+        
+        $.ajax({// se arma un objecto por medio de ajax  
+        url: urlQuery,// se indica donde llegara la informacion del objecto
+        
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post', // se especifica que metodo de envio se utilizara normalmente y por seguridad se utiliza el post
+        beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
+            //document.getElementById(idDiv).innerHTML='<div id="GifProcess">Procesando...<br><img   src="../../images/loader.gif" alt="Cargando" height="100" width="100"></div>';
+            
+        },
+        complete: function(){
+           
+        },
+        success: function(data){    
+            
+            document.getElementById(idDiv).innerHTML=data; //La respuesta del servidor la dibujo en el div            
+            
+        },
+        error: function (xhr, ajaxOptions, thrownError) {// si hay error se ejecuta la funcion
+            
+            var alertMensanje='<div class="alert alert-danger mt-3"><h4 class="alert-heading">Error!</h4><p>Parece que no hay conexión con el servidor.</p><hr><p class="mb-0">Intentalo de nuevo.</p></div>';
+            document.getElementById(idDiv).innerHTML=alertMensanje;
+            swal("Error de Conexión");
+          }
+      });
+}
+
+
+function agregar_verificacion_ot(orden_trabajo_id){
+    
+    var btnEnviar = "btn_agregar_verificacion";
+    document.getElementById(btnEnviar).disabled=true;
+        
+    var maquina_id=document.getElementById('maquina_id').value;    
+    var horas_trabajo=document.getElementById('horas_trabajo').value;
+    var kilometros_trabajo=document.getElementById('kilometros_trabajo').value;
+    var empresa_id=document.getElementById('empresa_id').value; 
+    urlQuery='procesadores/mantenimiento.process.php';  
+    
+    var form_data = new FormData();
+        form_data.append('Accion', '16');   
+        form_data.append('empresa_id', empresa_id);
+        form_data.append('maquina_id', maquina_id);
+        form_data.append('orden_trabajo_id', orden_trabajo_id);
+        form_data.append('horas_trabajo', horas_trabajo);    
+        form_data.append('kilometros_trabajo', kilometros_trabajo);
+        $.ajax({
+        url: urlQuery,
+        //dataType: 'json',
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post',
+        success: function(data){
+            document.getElementById(btnEnviar).disabled=false;
+            var respuestas = data.split(';'); //Armamos un vector separando los punto y coma de la cadena de texto
+            if(respuestas[0]=="OK"){ 
+                toastr.success(respuestas[1]);
+                
+                listar_verificacion_agregadas_ot(orden_trabajo_id);
+                
+            }else if(respuestas[0]=="E1"){  
+                toastr.error(respuestas[1],'',2000);
+                MarqueErrorElemento(respuestas[2]);
+            }else{
+                toastr.error(data,2000);          
+            }
+                    
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            document.getElementById(btnEnviar).disabled=false;
+            alert(xhr.status);
+            alert(thrownError);
+          }
+      });
+}
+
+
+function listar_verificacion_agregadas_ot(orden_trabajo_id=''){
+    var idDiv="div_verificaciones_ot";
+    if($('#'+idDiv).length<=0){
+        return;
+    }    
+    var empresa_id=document.getElementById('empresa_id').value;
+    if(orden_trabajo_id==""){
+        var orden_trabajo_id=$("#btn_form_cierre_orden_trabajo").data("orden_trabajo_id");
+    }
+    urlQuery='Consultas/mantenimiento.draw.php';    
+    var form_data = new FormData();
+        form_data.append('Accion', 8);        
+        form_data.append('orden_trabajo_id', orden_trabajo_id);
+        form_data.append('empresa_id', empresa_id);
+        
+        $.ajax({// se arma un objecto por medio de ajax  
+        url: urlQuery,// se indica donde llegara la informacion del objecto
+        
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post', // se especifica que metodo de envio se utilizara normalmente y por seguridad se utiliza el post
+        beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
+            //document.getElementById(idDiv).innerHTML='<div id="GifProcess">Procesando...<br><img   src="../../images/loader.gif" alt="Cargando" height="100" width="100"></div>';
+            
+        },
+        complete: function(){
+           
+        },
+        success: function(data){    
+            
+            document.getElementById(idDiv).innerHTML=data; //La respuesta del servidor la dibujo en el div            
+            
+        },
+        error: function (xhr, ajaxOptions, thrownError) {// si hay error se ejecuta la funcion
+            
+            var alertMensanje='<div class="alert alert-danger mt-3"><h4 class="alert-heading">Error!</h4><p>Parece que no hay conexión con el servidor.</p><hr><p class="mb-0">Intentalo de nuevo.</p></div>';
+            document.getElementById(idDiv).innerHTML=alertMensanje;
+            swal("Error de Conexión");
+          }
+      });
+}
+
+
+function add_events_dropzone_ot(){
+    Dropzone.autoDiscover = false;
+           
+    urlQuery='procesadores/mantenimiento.process.php';
+    var orden_trabajo_id=$("#soportes_ot").data("ot_id");
+    var empresa_id=document.getElementById('empresa_id').value; 
+    
+    var myDropzone = new Dropzone("#soportes_ot", { url: urlQuery,paramName: "adjunto_ot"});
+        myDropzone.on("sending", function(file, xhr, formData) { 
+
+            formData.append("Accion", 18);
+            formData.append("orden_trabajo_id", orden_trabajo_id);
+            formData.append("empresa_id", empresa_id);
+            
+        });
+
+        myDropzone.on("addedfile", function(file) {
+            file.previewElement.addEventListener("click", function() {
+                myDropzone.removeFile(file);
+            });
+        });
+
+        myDropzone.on("success", function(file, data) {
+
+            var respuestas = data.split(';');
+            if(respuestas[0]=="OK"){
+                toastr.success(respuestas[1]);
+                listar_adjuntos_ot(orden_trabajo_id);
+            }else if(respuestas[0]=="E1"){
+                toastr.warning(respuestas[1]);
+            }else{
+                swal(data);
+            }
+
+        });
+    listar_adjuntos_ot(orden_trabajo_id);
+}
+
+
+function listar_adjuntos_ot(orden_trabajo_id="",idDiv="div_adjuntos_ot"){
+      
+    var empresa_id=document.getElementById('empresa_id').value;
+    if(orden_trabajo_id==''){
+        var orden_trabajo_id=$("#soportes_ot").data("ot_id");
+    }
+    urlQuery='Consultas/mantenimiento.draw.php';    
+    var form_data = new FormData();
+        form_data.append('Accion', 9);        
+        form_data.append('orden_trabajo_id', orden_trabajo_id);
+        form_data.append('empresa_id', empresa_id);
+        
+        $.ajax({// se arma un objecto por medio de ajax  
+        url: urlQuery,// se indica donde llegara la informacion del objecto
+        
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post', 
+        beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
             
         },
         complete: function(){
