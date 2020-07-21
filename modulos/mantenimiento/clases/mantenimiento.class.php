@@ -38,6 +38,11 @@ class Mantenimiento extends conexion{
     }
     
     public function crearEditarOrdenTrabajo($db,$edit_id,$orden_trabajo_id,$orden_tabajo_tipo_id,$fecha_programada,$maquina_id,$componente_id,$fecha_ultimo_mantenimiento,$frecuencia_dias,$ruta_verificacion_id,$frecuencia_ruta_verificacion,$frecuencia_horas,$frecuencia_kilometros,$observaciones_orden,$idUser,$ActualizaComponente=1) {
+        
+        if($ruta_verificacion_id==''){
+            $ruta_verificacion_id=0;
+        }
+        
         $Tabla="ordenes_trabajo";
         $created=date("Y-m-d H:i:s");   
         
@@ -190,12 +195,12 @@ class Mantenimiento extends conexion{
     }
     
     
-    public function RegistreAdjuntoOT($db,$orden_trabajo_id, $destino, $Tamano, $NombreArchivo, $Extension, $idUser) {
+    public function RegistreAdjuntoOT($db,$orden_trabajo_id, $destino, $Tamano, $NombreArchivo, $Extension,$cierre_orden, $idUser) {
         
         $tab="ordenes_trabajo_adjuntos";
         
         $Datos["orden_trabajo_id"]=$orden_trabajo_id;
-        
+        $Datos["cierre_orden"]=$cierre_orden;
         $Datos["Ruta"]=$destino;    
         $Datos["NombreArchivo"]=$NombreArchivo;    
         $Datos["Extension"]=$Extension;    

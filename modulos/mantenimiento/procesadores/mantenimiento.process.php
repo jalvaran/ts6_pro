@@ -631,8 +631,28 @@ if( !empty($_REQUEST["Accion"]) ){
             if(!is_numeric($tiempo_dedicado) or $tiempo_dedicado<=0){
                 exit("E1;El campo Tiempo dedicado debe ser un numero mayor a cero;tiempo_dedicado");
             }
+            $DatosOrden=$obCon->DevuelveValores("$db.ordenes_trabajo", "ID", $orden_trabajo_id);
             
             $obCon->cerrar_orden_trabajo_verificacion($db, $orden_trabajo_id, $fecha_cierre, $tecnico_id, $observaciones_cierre,$tiempo_dedicado, $idUser);
+            
+            $nuevo_id=$obCon->getUniqId("ot_");
+            
+            $Dias=$DatosOrden["frecuencia_ruta_verificacion"];
+            
+            $fecha_programada=$obCon->SumeDiasFecha($fecha_cierre, $Dias);
+            
+            $obCon->crearEditarOrdenTrabajo($db, "", $nuevo_id, $DatosOrden["tipo_mantenimiento"], $fecha_programada, "", "", "", "", $DatosOrden["ruta_verificacion_id"], $DatosOrden["frecuencia_ruta_verificacion"], "", "", $DatosOrden["observaciones_orden"], $idUser,0);
+            $sql="SELECT * FROM $db.ordenes_trabajo_tareas WHERE orden_trabajo_id='".$DatosOrden["orden_trabajo_id"]."'";
+            $Consulta=$obCon->Query($sql);
+            while($DatosConsulta=$obCon->FetchAssoc($Consulta)){
+                $obCon->agregarTareaOT($db, $nuevo_id, $DatosConsulta["tarea_id"]);
+            }
+            
+            $sql="SELECT * FROM $db.ordenes_trabajo_adjuntos WHERE orden_trabajo_id='".$DatosOrden["orden_trabajo_id"]."' AND cierre_orden=0";
+            $Consulta=$obCon->Query($sql);
+            while($DatosConsulta=$obCon->FetchAssoc($Consulta)){
+                $obCon->RegistreAdjuntoOT($db, $nuevo_id, $DatosConsulta["Ruta"], $DatosConsulta["Tamano"], $DatosConsulta["NombreArchivo"], $DatosConsulta["Extension"], 0, $idUser);
+            }
             
             print("OK;Orden de trabajo creada correctamente");
             
@@ -644,7 +664,7 @@ if( !empty($_REQUEST["Accion"]) ){
             $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
             $db=$DatosEmpresa["db"];
             $orden_trabajo_id=$obCon->normalizar($_REQUEST["orden_trabajo_id"]);
-            
+            $cierre_orden=$obCon->normalizar($_REQUEST["cierre_orden"]);
             $Extension="";
             if(!empty($_FILES['adjunto_ot']['name'])){
                 
@@ -677,7 +697,7 @@ if( !empty($_REQUEST["Accion"]) ){
                 $destino=$carpeta.$idAdjunto.".".$Extension;
                 
                 move_uploaded_file($_FILES['adjunto_ot']['tmp_name'],$destino);
-                $obCon->RegistreAdjuntoOT($db,$orden_trabajo_id, $destino, $Tamano, $_FILES['adjunto_ot']['name'], $Extension, $idUser);
+                $obCon->RegistreAdjuntoOT($db,$orden_trabajo_id, $destino, $Tamano, $_FILES['adjunto_ot']['name'], $Extension,$cierre_orden, $idUser);
             }else{
                 exit("E1;No se recibió la imagen");
             }

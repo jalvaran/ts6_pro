@@ -484,7 +484,7 @@ function form_cerrar_orden(orden_trabajo_id){
             listar_insumos_agregados_ot();
             listar_fallas_agregadas_ot();
             listar_verificacion_agregadas_ot();
-            add_events_dropzone_ot();
+            add_events_dropzone_ot(1);
         },
         error: function (xhr, ajaxOptions, thrownError) {// si hay error se ejecuta la funcion
             
@@ -908,6 +908,11 @@ function dibuja_ordenes_trabajo(Page=1){
 
 function listarTareasOT(orden_trabajo_id=''){
     var idDiv="divTareasOrdenTrabajo";
+    
+    if($('#'+idDiv).length<=0){
+        return;
+    }  
+    
     $("#btn_agregar_tarea").prop('disabled', true);
     if(orden_trabajo_id===''){
         var orden_trabajo_id=document.getElementById('orden_trabajo_id').value;
@@ -1281,7 +1286,7 @@ function listar_verificacion_agregadas_ot(orden_trabajo_id=''){
 }
 
 
-function add_events_dropzone_ot(){
+function add_events_dropzone_ot(cierre_orden=0){
     Dropzone.autoDiscover = false;
            
     urlQuery='procesadores/mantenimiento.process.php';
@@ -1294,7 +1299,7 @@ function add_events_dropzone_ot(){
             formData.append("Accion", 18);
             formData.append("orden_trabajo_id", orden_trabajo_id);
             formData.append("empresa_id", empresa_id);
-            
+            formData.append("cierre_orden", cierre_orden);
         });
 
         myDropzone.on("addedfile", function(file) {

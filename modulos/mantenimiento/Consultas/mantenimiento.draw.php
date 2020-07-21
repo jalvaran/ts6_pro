@@ -183,7 +183,8 @@ if( !empty($_REQUEST["Accion"]) ){
                                 
                                 print('<tr>');
                                     print("<td>");
-                                        print('<a style="font-size:25px;color:green" href="" target="_blank" title="Ver PDF" title="Ver PDF" ><i class="far fa-file-pdf text-error"></i></a>');
+                                        $link="../../general/Consultas/PDF_Documentos.draw.php?idDocumento=1&empresa_id=1&id=$idItem";
+                                        print('<a style="font-size:25px;color:green" href="'.$link.'" target="_blank" title="Ver PDF" title="Ver PDF" ><i class="far fa-file-pdf text-error"></i></a>');
                                     print("</td>");
                                     print("<td>");
                                         print('<a style="font-size:25px;" title="Editar Orden" onclick="frm_crear_editar_registro(`'.$idItem.'`)" ><i class="icon-pencil text-info"></i></a>');

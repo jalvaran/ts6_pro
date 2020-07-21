@@ -1,9 +1,13 @@
 <?php 
+session_start();
+if (!isset($_SESSION['username'])){
+  exit("<a href='../../index.php' ><img src='../../../images/401.png'>Iniciar Sesion </a>");
+  
+}
 if(isset($_REQUEST["idDocumento"])){
-    $myPage="PDF_Documentos.draw.php";
-    include_once("modelo/php_conexion.php");
     
-    include_once("general/class/ClasesPDFDocumentos.class.php");
+    include_once("../../modelo/php_conexion.php");    
+    include_once("../class/ClasesPDFDocumentos.class.php");
     
     $idUser=1;
     $obCon = new conexion($idUser);
@@ -14,13 +18,10 @@ if(isset($_REQUEST["idDocumento"])){
     
     switch ($idDocumento){
         case 1: //PDF para un pedido
-            if(isset($_REQUEST["idPedido"])){
-                $idPedido=$obCon->normalizar($_REQUEST["idPedido"]);
-            }else{
-                $idPedido=$obCon->normalizar($_REQUEST["ID"]);
-            }
             
-            $obDoc->PedidoDomiPDF($idPedido);            
+            $orden_trabajo_id=$obCon->normalizar($_REQUEST["id"]);
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);                  
+            $obDoc->orden_trabajo_pdf($empresa_id,$orden_trabajo_id);            
         break;//Fin caso 1
        
     }

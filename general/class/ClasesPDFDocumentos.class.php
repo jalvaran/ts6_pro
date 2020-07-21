@@ -10,6 +10,9 @@ class Documento{
      * Constructor 
      * @param type $db
      */
+    public $DataBase;
+    public $obCon;
+    
     function __construct($db){
         $this->DataBase=$db;
         $this->obCon=new conexion(1);
@@ -23,7 +26,7 @@ class Documento{
      * @param type $VectorPDF
      * @param type $Margenes
      */
-    public function PDF_Ini($TituloFormato,$FontSize,$VectorPDF,$Margenes=1,$Patch="") {
+    public function PDF_Ini($TituloFormato,$FontSize,$VectorPDF,$Margenes=1,$Patch="../../") {
         
         //require_once('../../librerias/tcpdf/examples/config/tcpdf_config_alt.php');
         $tcpdf_include_dirs = array(realpath($Patch.'librerias/tcpdf/tcpdf.php'), '/usr/share/php/tcpdf/tcpdf.php', '/usr/share/tcpdf/tcpdf.php', '/usr/share/php-tcpdf/tcpdf.php', '/var/www/tcpdf/tcpdf.php', '/var/www/html/tcpdf/tcpdf.php', '/usr/local/apache2/htdocs/tcpdf/tcpdf.php');
@@ -40,7 +43,7 @@ class Documento{
         $this->PDF->SetAuthor('Techno Soluciones');
         $this->PDF->SetTitle($TituloFormato);
         $this->PDF->SetSubject($TituloFormato);
-        $this->PDF->SetKeywords('Techno Soluciones, PDF, '.$TituloFormato.' , CCTV, Alarmas, Computadores, Software');
+        $this->PDF->SetKeywords('Techno Soluciones, PDF, '.$TituloFormato.' , Software');
         // set default header data
         //$pdf->SetHeaderData(PDF_HEADER_LOGO, 60, PDF_HEADER_TITLE.'', "");
         // set header and footer fonts
@@ -81,13 +84,11 @@ class Documento{
      * @param type $VectorEncabezado
      * @param type $NumeracionDocumento
      */
-    public function PDF_Encabezado($Fecha,$idEmpresa,$idFormatoCalidad,$VectorEncabezado,$NumeracionDocumento="",$DatosLocal) {
+    public function PDF_Encabezado($Fecha,$idEmpresa,$idFormatoCalidad,$VectorEncabezado,$NumeracionDocumento="",$DatosEmpresa) {
         
         $DatosFormatoCalidad=$this->obCon->DevuelveValores("formatos_calidad", "ID", $idFormatoCalidad);
-        $dataCity=$this->obCon->DevuelveValores("ciudades", "ID", $DatosLocal["idCiudad"]);
-        $DatosLocal["idCiudad"]=$dataCity["Nombre"];
-        //$DatosEmpresa=$this->obCon->DevuelveValores("info_general_plataforma", "ID", 1);
-        $RutaLogo="images/domismall.png";
+        
+        $RutaLogo="../../images/header-logo.png";
 ///////////////////////////////////////////////////////
 //////////////encabezado//////////////////
 ////////////////////////////////////////////////////////
@@ -116,11 +117,11 @@ $tbl = <<<EOD
 EOD;
 $this->PDF->writeHTML($tbl, true, false, false, false, '');
 $this->PDF->SetFillColor(255, 255, 255);
-$txt=$DatosLocal["Nombre"];
+$txt="<strong>".$DatosEmpresa["RazonSocial"]."<br>".$DatosEmpresa["NIT"]."</strong>";
 $this->PDF->MultiCell(62, 5, $txt, 0, 'L', 1, 0, '', '', true,0, true, true, 10, 'M');
-$txt=$DatosLocal["Direccion"]."<br>".$DatosLocal["Telefono"]."<br>".$DatosLocal["idCiudad"];
+$txt=$DatosEmpresa["Direccion"]."<br>".$DatosEmpresa["Telefono"]."<br>".$DatosEmpresa["Ciudad"];
 $this->PDF->MultiCell(62, 5, $txt, 0, 'C', 1, 0, '', '', true,0, true, true, 10, 'M');
-$Documento="<strong>$NumeracionDocumento</strong><br><h5>Impreso por TS5, Techno Soluciones SAS <BR>NIT 900.833.180 3177740609</h5><br>";
+$Documento="<strong>$NumeracionDocumento</strong><br><h5>Impreso por TS6 Pro </h5><br>";
 $this->PDF->MultiCell(62, 5, $Documento, 0, 'R', 1, 0, '', '', true,0, true ,true, 10, 'M');
 $this->PDF->writeHTML("<br>", true, false, false, false, '');
 //Close and output PDF document
@@ -138,112 +139,233 @@ $this->PDF->writeHTML("<br>", true, false, false, false, '');
         $this->PDF->Output("$NombreArchivo".".pdf", 'I');
     } 
     
-    public function PedidoDomiPDF($idPedido) {
+    public function orden_trabajo_pdf($empresa_id,$orden_trabajo_id) {
         
-        $obCon=new conexion(1);
-        $idFormato=1;
-        $DatosFormato=$obCon->DevuelveValores("formatos_calidad", "ID", $idFormato);
-        $Documento=$DatosFormato["Nombre"]." $idPedido";
+        $DatosEmpresa=$this->obCon->DevuelveValores("empresapro", "ID", $empresa_id);
+        $db=$DatosEmpresa["db"];
+        $DatosOrden=$this->obCon->DevuelveValores("$db.ordenes_trabajo", "ID", $orden_trabajo_id);
+        $idFormato=3000;
+        $DatosFormato=$this->obCon->DevuelveValores("formatos_calidad", "ID", $idFormato);
+        $Documento=$DatosFormato["Nombre"]." $orden_trabajo_id";
         $this->PDF_Ini($Documento, 8, "");
-        $DatosPedido=$this->obCon->DevuelveValores("pedidos", "ID", $idPedido);
-        $DatosCliente=$obCon->DevuelveValores("client_user", "ID", $DatosPedido["cliente_id"]);
-        $DatosLocal=$obCon->DevuelveValores("locales", "ID", $DatosPedido["local_id"]);
-        $this->PDF_Encabezado($DatosPedido["Created"],1, $idFormato, "",$Documento,$DatosLocal);
-        $html=$this->EncabezadoPedido($DatosCliente,$DatosPedido);
+        
+        $this->PDF_Encabezado($DatosOrden["created"],1, $idFormato, "",$Documento,$DatosEmpresa);
+        
+        $html=$this->EncabezadoOrden($db,$DatosOrden);
         $this->PDF_Write("<br>".$html);
         
-        $html=$this->ItemsPedido($idPedido,$DatosLocal["db"]);
+        $html=$this->CuerpoOrden($db,$DatosOrden);
         $this->PDF_Write("<br>".$html);
-        $this->PDF_Output("DoMi_$idPedido");
+        
+        $html=$this->FirmasOrdenTrabajo($db,$DatosOrden);
+        $this->PDF_Write("<br>".$html);
+        
+        $this->PDF_Output("OT_$orden_trabajo_id");
          
     }
     
-    public function ItemsPedido($idPedido,$db) {
-        $obCon=new conexion(1);
-        $sql="SELECT t2.Referencia,t1.Cantidad,t1.ValorUnitario,t1.Total,t1.Observaciones, t2.Nombre,t2.DescripcionCorta 
-                 FROM pedidos_items t1 INNER JOIN productos_servicios t2 ON t1.product_id=t2.ID 
-                 WHERE pedido_id='$idPedido'";
-        $Consulta=$obCon->QueryExterno($sql, HOST, USER, PW, $db, "");
-        $tbl='<table cellspacing="0" cellpadding="2" border="0">';
-            
-            $tbl.='<tr>
+    public function FirmasOrdenTrabajo($db,$DatosOrden) {
+        
+        $sql="SELECT idUsuarios as ID, CONCAT(Nombre,' ',Apellido) as NombreUsuario,Identificacion FROM usuarios WHERE idUsuarios='".$DatosOrden["usuario_cierre_id"]."'";
+        $DatosUsuario=$this->obCon->FetchAssoc($this->obCon->Query($sql));
+        $sql="SELECT * FROM $db.catalogo_tecnicos WHERE ID='".$DatosOrden["tecnico_id"]."'";
+        $DatosTecnico=$this->obCon->FetchAssoc($this->obCon->Query($sql));
+        $tbl='<table cellspacing="0" cellpadding="2" border="1">';
+            $tbl.='<tr>';
+                $tbl.='<th>';
+                    $tbl.='<strong>Técnico:</strong><br>';
+                    if($DatosTecnico["ID"]>0){
+                        $tbl.= utf8_encode($DatosTecnico["NombreTecnico"])."<br>";
+                        $tbl.= ($DatosTecnico["Identificacion"]);
+                    }else{
+                        $tbl.='<br><br><br>';
+                    }
                     
-                        <th><strong>Referencia</strong></th>
-                        <th><strong>Nombre</strong></th>
-                        <th><strong>Observaciones</strong></th>
-                        <th><strong>Valor Unitario</strong></th>
-                        <th><strong>Cantidad</strong></th>
-                        <th><strong>Total</strong></th>
-                        
+                $tbl.='</th>';
+                $tbl.='<th>';
+                    $tbl.='<strong>Usuario que cierra:</strong><br>';
+                    if($DatosUsuario["ID"]>0){
+                        $tbl.= utf8_encode($DatosUsuario["NombreUsuario"])."<br>";
+                        $tbl.= ($DatosUsuario["Identificacion"]);
+                    }else{
+                        $tbl.='<br><br><br>';
+                    }
                     
-                    </tr>';
-            $z=0;
-            $Total=0;
-            while($DatosItems=$obCon->FetchAssoc($Consulta)){
-                $Total=$Total+$DatosItems["Total"];
-                if($z==1){
-                    $z=0;
-                    $Color="white";
-                }else{
-                    $z=1;
-                    $Color="#e1fffc";
-                }
-                $tbl.='<tr>
-                    
-                        <td style="background-color:'.$Color.'">'.$DatosItems["Referencia"].'</td>
-                        <td style="background-color:'.$Color.'">'.($DatosItems["Nombre"]).'</td>
-                        <td style="text-align:left;background-color:'.$Color.'">'. ($DatosItems["Observaciones"]).'</td>
-                    
-                        <td style="text-align:right;background-color:'.$Color.'">'.number_format($DatosItems["ValorUnitario"]).'</td>
-                        <td style="text-align:right;background-color:'.$Color.'">'.$DatosItems["Cantidad"].'</td>
-                        <td style="text-align:right;background-color:'.$Color.'">'.number_format($DatosItems["Total"]).'</td>
-                        
-                    </tr>';
-            }
-            
-            $tbl.='<tr>
-                    
-                        <th colspan="5" style="text-align:right"><strong>TOTAL:</strong></th>                        
-                        <th style="text-align:right"><strong>'.number_format($Total).'</strong></th>
-                    
-                    </tr>';
-            
-        $tbl.="</table>";
+                $tbl.='</th>';
+            $tbl.='</tr>';  
+        $tbl.='</table>'; 
         return($tbl);
+    }
+    
+    public function CuerpoOrden($db,$DatosOrden) {
+        $tbl='<table cellspacing="0" cellpadding="2" border="1">';
+            $tbl.='<tr>';
+                $tbl.='<th>';
+                    $tbl.='<strong>Tareas:</strong>';
+                    
+                    $sql="SELECT t2.NombreTarea FROM $db.ordenes_trabajo_tareas t1 
+                            INNER JOIN $db.catalogo_tareas t2 ON t2.ID=t1.tarea_id 
+                            WHERE orden_trabajo_id='".$DatosOrden["orden_trabajo_id"]."'
+                             ";
+                    $Consulta=$this->obCon->Query($sql);
+                    $lista="";
+                    while($DatosConsulta=$this->obCon->FetchAssoc($Consulta)){
+                        $lista.='<br>';
+                        $lista.='|___| ';
+                        $lista.= utf8_encode($DatosConsulta["NombreTarea"]);
+                        
+                    }       
+                    if($lista==''){
+                        $lista.='<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>';
+                    }
+                    $tbl.=$lista;
+                $tbl.='</th>';
+                $tbl.='<th>';
+                    $tbl.='<strong>Verificaciones y/o Mediciones:</strong>';
+                    $sql="SELECT t1.*,t2.Nombre,
+                            (SELECT NombreSeccion FROM $db.catalogo_secciones t3 WHERE t3.ID=t2.ubicacion_id LIMIT 1) as Ubicacion 
+                            FROM $db.ordenes_trabajo_maquinas_verificadas t1 
+                            INNER JOIN $db.equipos_maquinas t2 ON t2.ID=t1.maquina_id 
+                            WHERE orden_trabajo_id='".$DatosOrden["ID"]."'
+                             ";
+                    $Consulta=$this->obCon->Query($sql);
+                    $lista="";
+                    while($DatosConsulta=$this->obCon->FetchAssoc($Consulta)){
+                        $lista.='<br>';
+                        $lista.='- Horas: '.$DatosConsulta["horas_trabajo"].' - ';
+                        $lista.='Kilometros: - '.$DatosConsulta["kilometros_trabajo"].' - ';
+                        $lista.= utf8_encode($DatosConsulta["Nombre"]." ".$DatosConsulta["Ubicacion"]);
+                        $lista.='<br>';
+                    }       
+                    if($lista==''){
+                        $lista.='<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>';
+                    }
+                    $tbl.=$lista;
+                $tbl.='</th>';
+            $tbl.='</tr>';  
+            
+            $tbl.='<tr>';
+                $tbl.='<th>';
+                    $dbPrincipal=DB;
+                    $tbl.='<strong>Fallas Encontradas:</strong>';
+                    
+                    $sql="SELECT t1.*,
+                    (SELECT Falla FROM $dbPrincipal.catalogo_fallas t2 WHERE t2.ID=t1.falla_id LIMIT 1) AS Falla,
+                    (SELECT Causa FROM $dbPrincipal.catalogo_causas t2 WHERE t2.ID=t1.causa_falla_id LIMIT 1) AS Causa,
+                    (SELECT Nombre FROM $db.equipos_componentes t2 WHERE t2.ID=t1.componente_id LIMIT 1) AS Nombre,
+                    (SELECT Marca FROM $db.equipos_componentes t2 WHERE t2.ID=t1.componente_id LIMIT 1) AS Marca,
+                    (SELECT NumeroSerie FROM $db.equipos_componentes t2 WHERE t2.ID=t1.componente_id LIMIT 1) AS NumeroSerie 
+                    
+                     FROM $db.ordenes_trabajo_fallas t1 
+                    
+                    WHERE t1.orden_trabajo_id='".$DatosOrden["ID"]."'  
+                    
+                    ";
+                    $Consulta=$this->obCon->Query($sql);
+                    $lista="";
+                    while($DatosConsulta=$this->obCon->FetchAssoc($Consulta)){
+                        $lista.='<br>';
+                        $lista.='<strong>Componente: </strong>';
+                        $lista.= utf8_encode($DatosConsulta["Nombre"]);
+                        $lista.='<br>';
+                        $lista.='<strong>Serie: </strong>';
+                        $lista.= utf8_encode($DatosConsulta["NumeroSerie"]);
+                        $lista.='<br>';
+                        $lista.='<strong>Falla: </strong>';
+                        $lista.= utf8_encode($DatosConsulta["Falla"]);
+                        $lista.='<br>';
+                        $lista.='<strong>Causa: </strong>';
+                        $lista.= utf8_encode($DatosConsulta["Causa"]);
+                        $lista.='<br>';
+                    }       
+                    if($lista==''){
+                        $lista.='<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>';
+                    }
+                    $tbl.=$lista;
+                $tbl.='</th>';
+                $tbl.='<th>';
+                    $tbl.='<strong>Insumos :</strong>';
+                    $sql="SELECT t1.*,t2.DescripcionPrimaria as Nombre 
+                            FROM $db.ordenes_trabajo_insumos t1 
+                            INNER JOIN $db.equipos_partes t2 ON t2.ID=t1.insumo_id 
+                            WHERE t1.orden_trabajo_id='".$DatosOrden["ID"]."'
+                             ";
+                    $Consulta=$this->obCon->Query($sql);
+                    $lista="";
+                    while($DatosConsulta=$this->obCon->FetchAssoc($Consulta)){
+                        $lista.='<br>';
+                        $lista.= utf8_encode($DatosConsulta["Nombre"]);
+                        $lista.='<br>';
+                        $lista.='- Valor Unitario: '.number_format($DatosConsulta["valor_unitario"]).'<br>';
+                        $lista.='- Cantidad: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.$DatosConsulta["cantidad"].'<br>';
+                        $lista.='- Total: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.number_format($DatosConsulta["total"]);
+                        
+                        $lista.='<br>';
+                    }       
+                    if($lista==''){
+                        $lista.='<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>';
+                    }
+                    $tbl.=$lista;
+                $tbl.='</th>';
+            $tbl.='</tr>'; 
+            
+            $tbl.='<tr>';
+                $tbl.='<th colspan="2">';
+                    $tbl.='<strong>Observaciones de ejecución:</strong>';
+                    if($DatosOrden["observaciones_cierre"]<>''){
+                        $tbl.="<br>";
+                        $tbl.= utf8_encode($DatosOrden["observaciones_cierre"]);
+                    }else{
+                        $tbl.='<br><br><br><br><br><br>';
+                    }
+                $tbl.='</th>';
+            $tbl.='</tr>';     
+        $tbl.='</table>';
+        return($tbl);
+        
         
     }
     
-    
-    public function EncabezadoPedido($DatosCliente,$DatosPedido) {
-        $obCon=new conexion(1);
+    public function EncabezadoOrden($db,$DatosOrden) {
+        $datosTipoOrden=$this->obCon->DevuelveValores("ordenes_trabajo_tipo_mantenimiento", "ID", $DatosOrden["tipo_mantenimiento"]);   
+        
+        $sql="SELECT CONCAT(Nombre,' ',Apellido) as NombreUsuario FROM usuarios WHERE idUsuarios='".$DatosOrden["usuario_creador_id"]."'";
+        $DatosUsuario=$this->obCon->FetchAssoc($this->obCon->Query($sql));
+        
+        $sql="SELECT t1.*,(SELECT NombreSeccion FROM $db.catalogo_secciones t2 WHERE t2.ID=t1.ubicacion_id LIMIT 1) as Ubicacion FROM $db.equipos_maquinas t1 WHERE t1.ID='".$DatosOrden["maquina_id"]."'";
+        $datosMaquina=$this->obCon->FetchAssoc($this->obCon->Query($sql));
+        
+        $sql="SELECT t1.* FROM $db.equipos_componentes t1 WHERE t1.ID='".$DatosOrden["componente_id"]."'";
+        $datosComponente=$this->obCon->FetchAssoc($this->obCon->Query($sql));
         
         $tbl = '
         <table cellspacing="0" cellpadding="2" border="1">
             <tr>
-                <td><strong>Fecha y Hora:</strong></td>
-                <td colspan="3">'.utf8_encode($DatosPedido["Created"]).'</td>
-
+                <td><strong>Fecha Programada:</strong></td>
+                <td>'.utf8_encode($DatosOrden["fecha_programada"]).'</td>
+                <td><strong>Maquina:</strong></td>
+                <td>'.utf8_encode($datosMaquina["Nombre"]." ".$datosMaquina["Marca"]).'</td>
             </tr>
             <tr>
-                <td><strong>Cliente:</strong></td>
-                <td colspan="3">'.utf8_encode($DatosCliente["Nombre"]).'</td>
+                <td><strong>Tipo de Mantenimiento:</strong></td>
+                <td>'.utf8_encode($datosTipoOrden["tipo_mantenimiento"]).'</td>
+                <td><strong>Ubicación:</strong></td>
+                <td>'.utf8_encode($datosMaquina["Ubicacion"]).'</td>    
 
             </tr>
             
             <tr>
-                <td ><strong>Dirección:</strong></td>
-                
-                <td colspan="3">'.utf8_encode($DatosCliente["Direccion"]).'</td>
+                <td ><strong>Creada por:</strong></td>                
+                <td>'.utf8_encode($DatosUsuario["NombreUsuario"]).'</td>
+                <td><strong>Componente:</strong></td>
+                <td>'.utf8_encode($datosComponente["Nombre"]." ".$datosComponente["NumeroSerie"]).'</td>       
             </tr>
+            
             <tr>
-                <td><strong>Teléfono:</strong></td>
-                
-                <td colspan="3">'.utf8_encode($DatosCliente["Telefono"]).'</td>
-            </tr>
-            <tr>
-                <td><strong>Observaciones:</strong></td>
-                
-                <td colspan="3">'.utf8_encode($DatosPedido["Observaciones"]).'</td>
+                <td><strong>Observaciones Iniciales:</strong></td>                
+                <td >'.utf8_encode($DatosOrden["observaciones_orden"]).'</td>
+                <td><strong>Horas de Duración o Parada:</strong></td>
+                <td> </td> 
             </tr>
             
         </table>
