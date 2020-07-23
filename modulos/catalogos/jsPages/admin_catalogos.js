@@ -109,6 +109,12 @@ function dibujeListadoSegunID(Page=1){
     if(listado_id==5){
         dibuja_listado_unidades_negocio(Page);
     }
+    if(listado_id==6){
+        dibuja_listado_tareas_tipo(Page);
+    }
+    if(listado_id==7){
+        dibuja_listado_rutinas(Page);
+    }
     
 }
 
@@ -188,6 +194,12 @@ function ConfirmarCrearEditar(){
                 }
                 if(lista==5){
                     GuardarEditarRegistroUnidadNegocio();
+                }
+                if(lista==6){
+                    GuardarEditarRegistroTareasTipo();
+                }
+                if(lista==7){
+                    GuardarEditarRegistroRutinas();
                 }
                 
                               
@@ -328,7 +340,7 @@ function GuardarEditarRegistroTareas(){
     var CodigoTarea=document.getElementById('CodigoTarea').value;
     var NombreTarea=document.getElementById('NombreTarea').value;
     var TipoTarea=document.getElementById('TipoTarea').value;
-    var Contador=document.getElementById('Contador').value;   
+    //var Contador=document.getElementById('Contador').value;   
     
     var form_data = new FormData();
         form_data.append('Accion', '3');  
@@ -339,7 +351,7 @@ function GuardarEditarRegistroTareas(){
         form_data.append('CodigoTarea', CodigoTarea);
         form_data.append('NombreTarea', NombreTarea);
         form_data.append('TipoTarea', TipoTarea);
-        form_data.append('Contador', Contador);
+        //form_data.append('Contador', Contador);
                                
         $.ajax({
         url: urlQuery,
@@ -502,6 +514,120 @@ function GuardarEditarRegistroUnidadNegocio(){
       });
 }
 
+function GuardarEditarRegistroTareasTipo(){
+    
+    urlQuery='procesadores/admin_catalogos.process.php';    
+    
+    var btnEnviar = "btn_frm_catalogos";
+    document.getElementById(btnEnviar).disabled=true;
+    document.getElementById(btnEnviar).value="Enviando...";
+    var edit_id=$("#btn_frm_catalogos").data("edit_id");
+    var empresa_id=document.getElementById('empresa_id').value;
+    var catalogo_id=document.getElementById('catalogo_id').value;
+    
+    var tipo_tarea=document.getElementById('tipo_tarea').value;
+    
+         
+    var form_data = new FormData();
+        form_data.append('Accion', '6');  
+        form_data.append('edit_id', edit_id);
+        form_data.append('catalogo_id', catalogo_id);
+        form_data.append('empresa_id', empresa_id);
+        
+        form_data.append('tipo_tarea', tipo_tarea);
+        
+                               
+        $.ajax({
+        url: urlQuery,
+        //dataType: 'json',
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post',
+        success: function(data){
+            document.getElementById(btnEnviar).disabled=false;
+            document.getElementById(btnEnviar).value="Enviar";
+            var respuestas = data.split(';'); //Armamos un vector separando los punto y coma de la cadena de texto
+            if(respuestas[0]=="OK"){ 
+                toastr.success(respuestas[1]);
+                
+                dibujeListadoSegunID();
+                
+            }else if(respuestas[0]=="E1"){  
+                toastr.error(respuestas[1],'',2000);
+                MarqueErrorElemento(respuestas[2]);
+            }else{
+                toastr.error(data,2000);          
+            }
+                    
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            document.getElementById(btnEnviar).disabled=false;
+            document.getElementById(btnEnviar).value="Enviar";
+            alert(xhr.status);
+            alert(thrownError);
+          }
+      });
+}
+
+
+function GuardarEditarRegistroRutinas(){
+    
+    urlQuery='procesadores/admin_catalogos.process.php';    
+    
+    var btnEnviar = "btn_frm_catalogos";
+    document.getElementById(btnEnviar).disabled=true;
+    document.getElementById(btnEnviar).value="Enviando...";
+    var edit_id=$("#btn_frm_catalogos").data("edit_id");
+    var empresa_id=document.getElementById('empresa_id').value;
+    var catalogo_id=document.getElementById('catalogo_id').value;
+    
+    var NombreRuta=document.getElementById('NombreRuta').value;
+    var Descripcion=document.getElementById('Descripcion').value;
+         
+    var form_data = new FormData();
+        form_data.append('Accion', '7');  
+        form_data.append('edit_id', edit_id);
+        form_data.append('catalogo_id', catalogo_id);
+        form_data.append('empresa_id', empresa_id);
+        
+        form_data.append('NombreRuta', NombreRuta);
+        form_data.append('Descripcion', Descripcion);
+                               
+        $.ajax({
+        url: urlQuery,
+        //dataType: 'json',
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post',
+        success: function(data){
+            document.getElementById(btnEnviar).disabled=false;
+            document.getElementById(btnEnviar).value="Enviar";
+            var respuestas = data.split(';'); //Armamos un vector separando los punto y coma de la cadena de texto
+            if(respuestas[0]=="OK"){ 
+                toastr.success(respuestas[1]);
+                
+                dibujeListadoSegunID();
+                
+            }else if(respuestas[0]=="E1"){  
+                toastr.error(respuestas[1],'',2000);
+                MarqueErrorElemento(respuestas[2]);
+            }else{
+                toastr.error(data,2000);          
+            }
+                    
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            document.getElementById(btnEnviar).disabled=false;
+            document.getElementById(btnEnviar).value="Enviar";
+            alert(xhr.status);
+            alert(thrownError);
+          }
+      });
+}
 
 /*
  * Funciones generales para listar tablas
@@ -677,6 +803,87 @@ function dibuja_listado_unidades_negocio(Page=1){
     var BusquedasGenerales=document.getElementById('txtBusquedasGenerales').value;
     var form_data = new FormData();
         form_data.append('Accion', 6);  
+        form_data.append('Page', Page);
+        //form_data.append('Busquedas', Busquedas); 
+        form_data.append('empresa_id', empresa_id);  
+        form_data.append('BusquedasGenerales', BusquedasGenerales);   
+       $.ajax({// se arma un objecto por medio de ajax  
+        url: urlQuery,// se indica donde llegara la informacion del objecto
+        
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post', // se especifica que metodo de envio se utilizara normalmente y por seguridad se utiliza el post
+        beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
+            //document.getElementById(idDiv).innerHTML='<div id="GifProcess">Procesando...<br><img   src="../../images/loader.gif" alt="Cargando" height="100" width="100"></div>';
+        },
+        complete: function(){
+           
+        },
+        success: function(data){    
+            
+            document.getElementById(idDiv).innerHTML=data; //La respuesta del servidor la dibujo en el div DivTablasBaseDatos                      
+            //add_events_frms();
+        },
+        error: function (xhr, ajaxOptions, thrownError) {// si hay error se ejecuta la funcion
+            
+            var alertMensanje='<div class="alert alert-danger mt-3"><h4 class="alert-heading">Error!</h4><p>Parece que no hay conexión con el servidor.</p><hr><p class="mb-0">Intentalo de nuevo.</p></div>';
+            document.getElementById(idDiv).innerHTML=alertMensanje;
+            swal("Error de Conexión");
+          }
+      });
+}
+
+function dibuja_listado_tareas_tipo(Page=1){
+    var idDiv="DivListado";
+    urlQuery='Consultas/admin_catalogos.draw.php';  
+    var empresa_id=document.getElementById('empresa_id').value;
+    //var Busquedas=document.getElementById('TxtBusquedas').value;
+    var BusquedasGenerales=document.getElementById('txtBusquedasGenerales').value;
+    var form_data = new FormData();
+        form_data.append('Accion', 7);  
+        form_data.append('Page', Page);
+        //form_data.append('Busquedas', Busquedas); 
+        form_data.append('empresa_id', empresa_id);  
+        form_data.append('BusquedasGenerales', BusquedasGenerales);   
+       $.ajax({// se arma un objecto por medio de ajax  
+        url: urlQuery,// se indica donde llegara la informacion del objecto
+        
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: form_data,
+        type: 'post', // se especifica que metodo de envio se utilizara normalmente y por seguridad se utiliza el post
+        beforeSend: function() { //lo que hará la pagina antes de ejecutar el proceso
+            //document.getElementById(idDiv).innerHTML='<div id="GifProcess">Procesando...<br><img   src="../../images/loader.gif" alt="Cargando" height="100" width="100"></div>';
+        },
+        complete: function(){
+           
+        },
+        success: function(data){    
+            
+            document.getElementById(idDiv).innerHTML=data; //La respuesta del servidor la dibujo en el div DivTablasBaseDatos                      
+            //add_events_frms();
+        },
+        error: function (xhr, ajaxOptions, thrownError) {// si hay error se ejecuta la funcion
+            
+            var alertMensanje='<div class="alert alert-danger mt-3"><h4 class="alert-heading">Error!</h4><p>Parece que no hay conexión con el servidor.</p><hr><p class="mb-0">Intentalo de nuevo.</p></div>';
+            document.getElementById(idDiv).innerHTML=alertMensanje;
+            swal("Error de Conexión");
+          }
+      });
+}
+
+
+function dibuja_listado_rutinas(Page=1){
+    var idDiv="DivListado";
+    urlQuery='Consultas/admin_catalogos.draw.php';  
+    var empresa_id=document.getElementById('empresa_id').value;
+    //var Busquedas=document.getElementById('TxtBusquedas').value;
+    var BusquedasGenerales=document.getElementById('txtBusquedasGenerales').value;
+    var form_data = new FormData();
+        form_data.append('Accion', 8);  
         form_data.append('Page', Page);
         //form_data.append('Busquedas', Busquedas); 
         form_data.append('empresa_id', empresa_id);  

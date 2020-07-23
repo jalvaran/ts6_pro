@@ -11,11 +11,11 @@ function validateDate($date, $format = 'Y-m-d H:i:s'){
     return $d && $d->format($format) == $date;
 }
 
-include_once("../clases/admin_equipos.class.php");
+include_once("../clases/admin_catalogos.class.php");
 
 if( !empty($_REQUEST["Accion"]) ){
     
-    $obCon=new adminEquipos($idUser);
+    $obCon=new adminCatalogos($idUser);
     
     switch ($_REQUEST["Accion"]) {
         
@@ -81,7 +81,7 @@ if( !empty($_REQUEST["Accion"]) ){
             $DatosFormulario["CodigoTarea"]=$obCon->normalizar($_REQUEST["CodigoTarea"]);
             $DatosFormulario["NombreTarea"]=$obCon->normalizar($_REQUEST["NombreTarea"]);
             $DatosFormulario["TipoTarea"]=$obCon->normalizar($_REQUEST["TipoTarea"]);
-            $DatosFormulario["Contador"]=$obCon->normalizar($_REQUEST["Contador"]);
+            //$DatosFormulario["Contador"]=$obCon->normalizar($_REQUEST["Contador"]);
             
                         
             $edit_id=$obCon->normalizar($_REQUEST["edit_id"]); 
@@ -168,6 +168,61 @@ if( !empty($_REQUEST["Accion"]) ){
             print("OK;Datos Guardados");
             
         break;//Fin caso 5
+        
+        case 6: //Crear o editar un tipo de tarea
+            
+            $DatosFormulario["tipo_tarea"]=$obCon->normalizar($_REQUEST["tipo_tarea"]);
+                                    
+            $edit_id=$obCon->normalizar($_REQUEST["edit_id"]); 
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]); 
+            $catalogo_id=$obCon->normalizar($_REQUEST["catalogo_id"]); 
+            
+            foreach ($DatosFormulario as $key => $value) {
+                
+                if($value==''){
+                    exit("E1;El campo $key no puede estar vacío;$key");
+                }
+            }
+            $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
+            $db=$DatosEmpresa["db"];
+            if($edit_id==""){
+                $sql=$obCon->getSQLInsert("catalogo_tareas_tipos", $DatosFormulario); 
+            }else{
+                $sql=$obCon->getSQLUpdate("catalogo_tareas_tipos", $DatosFormulario);
+                $sql.=" WHERE ID='$edit_id'";
+            }
+            $obCon->QueryExterno($sql, HOST, USER, PW, $db, "");
+            print("OK;Datos Guardados");
+            
+        break;//Fin caso 6
+        
+        case 7: //Crear o editar una ruta de verificacion
+            
+            $DatosFormulario["NombreRuta"]=$obCon->normalizar($_REQUEST["NombreRuta"]);
+            $DatosFormulario["Descripcion"]=$obCon->normalizar($_REQUEST["Descripcion"]);
+            
+            $edit_id=$obCon->normalizar($_REQUEST["edit_id"]); 
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]); 
+            $catalogo_id=$obCon->normalizar($_REQUEST["catalogo_id"]); 
+            
+            foreach ($DatosFormulario as $key => $value) {
+                
+                if($value==''){
+                    exit("E1;El campo $key no puede estar vacío;$key");
+                }
+            }
+            $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
+            $db=$DatosEmpresa["db"];
+            if($edit_id==""){
+                $sql=$obCon->getSQLInsert("catalogo_rutas_verificacion", $DatosFormulario); 
+            }else{
+                $sql=$obCon->getSQLUpdate("catalogo_rutas_verificacion", $DatosFormulario);
+                $sql.=" WHERE ID='$edit_id'";
+            }
+            $obCon->QueryExterno($sql, HOST, USER, PW, $db, "");
+            print("OK;Datos Guardados");
+            
+        break;//Fin caso 7
         
     }
     

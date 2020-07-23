@@ -359,7 +359,7 @@ if( !empty($_REQUEST["Accion"]) ){
             $Condicion=" WHERE ID<>'' ";
             
             if($BusquedasGenerales<>''){
-                $Condicion.=" AND ( t1.ID = '%$BusquedasGenerales%' or t1.CodigoTarea like '%$BusquedasGenerales%' or t1.NombreTarea like '%$BusquedasGenerales%' or t1.TipoTarea like '%$BusquedasGenerales%')";
+                $Condicion.=" AND ( t1.ID = '%$BusquedasGenerales%' or t1.CodigoTarea like '%$BusquedasGenerales%' or t1.NombreTarea like '%$BusquedasGenerales%' )";
             }
             
             $PuntoInicio = ($Page * $Limit) - $Limit;
@@ -372,7 +372,7 @@ if( !empty($_REQUEST["Accion"]) ){
             $totales = $obCon->FetchAssoc($Consulta);
             $ResultadosTotales = $totales['Items'];
                         
-            $sql="SELECT t1.* 
+            $sql="SELECT t1.*,(SELECT tipo_tarea FROM catalogo_tareas_tipos t2 WHERE t2.ID=t1.TipoTarea LIMIT 1) as NombreTipoTarea  
                   FROM catalogo_tareas t1 $Condicion ORDER BY ID DESC LIMIT $PuntoInicio,$Limit;";
             $Consulta=$obCon->QueryExterno($sql, HOST, USER, PW, $db, "");
                     
@@ -464,7 +464,7 @@ if( !empty($_REQUEST["Accion"]) ){
                                         <th>Codigo de la Tarea</th>
                                         <th>Nombre de la Tarea</th>
                                         <th>Tipo de Tarea</th>
-                                        <th>Contador</th>
+                                        
                                         
                                         
                                     </tr>
@@ -488,11 +488,9 @@ if( !empty($_REQUEST["Accion"]) ){
                                         print($RegistrosTabla["NombreTarea"]);
                                     print("</td>");
                                     print("<td class='mailbox-subject text-success'>");
-                                        print(($RegistrosTabla["TipoTarea"]));
+                                        print(($RegistrosTabla["NombreTipoTarea"]));
                                     print("</td>");
-                                    print("<td class='mailbox-subject text-flickr'>");
-                                        print(" <strong>".number_format($RegistrosTabla["Contador"])."</strong>");
-                                    print("</td>");
+                                    
                                                                      
                                 print('</tr>');
 
@@ -712,6 +710,14 @@ if( !empty($_REQUEST["Accion"]) ){
                 $tab=$db.".catalogo_unidades_negocio";
                 $title="Unidades de Negocio";
             }
+            if($catalogo_id==6){
+                $tab=$db.".catalogo_tareas_tipos";
+                $title="Tipos de Tarea";
+            }
+            if($catalogo_id==7){
+                $tab=$db.".catalogo_rutas_verificacion";
+                $title="Rutina";
+            }
             $css->frm_form("frm_catalogos", $title,$tab,$edit_id, "");
         break; //Fin caso 5
         
@@ -865,7 +871,312 @@ if( !empty($_REQUEST["Accion"]) ){
             $css->Cdiv();
             
         break; //Fin caso 6
+        
+        case 7:// dibujo el listado del tipo de tareas
+            
+            $Limit=20;
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
+            $db=$DatosEmpresa["db"];
+            $Page=$obCon->normalizar($_REQUEST["Page"]);
+            $NumPage=$obCon->normalizar($_REQUEST["Page"]);
+            if($Page==''){
+                $Page=1;
+                $NumPage=1;
+            }
+            
+            $BusquedasGenerales=$obCon->normalizar($_REQUEST["BusquedasGenerales"]);
+            
+            $Condicion=" WHERE ID<>'' ";
+            
+            if($BusquedasGenerales<>''){
+                $Condicion.=" AND ( t1.ID = '$BusquedasGenerales' or t1.tipo_tarea like '%$BusquedasGenerales%' )";
+            }
+            
+            $PuntoInicio = ($Page * $Limit) - $Limit;
+            
+            $sql = "SELECT COUNT(ID) as Items 
+                   FROM catalogo_tareas_tipos t1 $Condicion;";
+            
+            $Consulta=$obCon->QueryExterno($sql, HOST, USER, PW, $db, "");
+            
+            $totales = $obCon->FetchAssoc($Consulta);
+            $ResultadosTotales = $totales['Items'];
+                        
+            $sql="SELECT t1.* 
+                  FROM catalogo_tareas_tipos t1 $Condicion ORDER BY ID DESC LIMIT $PuntoInicio,$Limit;";
+            $Consulta=$obCon->QueryExterno($sql, HOST, USER, PW, $db, "");
+                    
+            $css->div("", "box-body no-padding", "", "", "", "", "");
+                $css->div("", "mailbox-controls", "", "", "", "", "");
                 
+                    print('<div class="row widget-separator-1 mb-3">
+                                <div class="col-md-3">
+                                    <div class="widget-1">
+                                        <div class="content">
+                                            <div class="row align-items-center">
+                                                <div class="col">
+                                                    <h5 class="title">Tipos de Tarea</h5>
+                                                    <span class="descr">Total Regitros: </span>
+                                                </div>
+                                                <div class="col text-right">
+                                                    <div class="number text-primary">'.number_format($ResultadosTotales).'</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                
+                                </div>
+                                <div class="col-md-3">
+                                
+                                </div>
+                                <div class="col-md-3">
+                                
+                                
+                            ');
+                   
+                    $css->div("", "pull-right", "", "", "", "", "");
+                        if($ResultadosTotales>$Limit){
+                            $TotalPaginas= ceil($ResultadosTotales/$Limit);                               
+                            print('<div class="btn-group">');
+                            $disable='disabled="true"';
+                            $Color="dark";
+                            $NumPage1=$NumPage;
+                            if($NumPage>1){
+                                $disable="";
+                                $Color="info";
+                                $NumPage1=$NumPage-1;
+                                print('<button class="btn btn-'.$Color.' btn-pill" onclick=CambiePagina(`1`,`'.$NumPage1.'`) style="cursor:pointer" '.$disable.'><i class="fa fa-chevron-left" '.$disable.'></i></button>');
+                            }
+                            
+                            
+                            $FuncionJS="onchange=CambiePagina(`1`);";
+                            $css->select("CmbPage", "btn btn-light text-dark btn-pill", "CmbPage", "", "", $FuncionJS, "");
+
+                                for($p=1;$p<=$TotalPaginas;$p++){
+                                    if($p==$NumPage){
+                                        $sel=1;
+                                    }else{
+                                        $sel=0;
+                                    }
+
+                                    $css->option("", "", "", $p, "", "",$sel);
+                                        print($p);
+                                    $css->Coption();
+
+                                }
+
+                            $css->Cselect();
+                            $disable='disabled="true"';
+                            $Color="dark";
+                            if($ResultadosTotales>($PuntoInicio+$Limit)){
+                                $disable="";
+                                $Color="info";
+                                $NumPage1=$NumPage+1;
+                                print('<span class="btn btn-info btn-pill" onclick=CambiePagina(`1`,`'.$NumPage1.'`) style=cursor:pointer><i class="fa fa-chevron-right" ></i></span>');
+                            }
+                             
+                            
+                            print("</div>");
+                        }    
+                        $css->Cdiv();
+                        $css->Cdiv();
+                    $css->Cdiv();
+                $css->Cdiv();
+                   
+                $css->CrearDiv("", "table-responsive mailbox-messages", "", 1, 1);
+                    print('<table class="table table-hover table-striped">');
+                        print('<thead>
+                                    <tr>
+                                        <th>Acciones</th>
+                                        <th>ID</th>
+                                        <th>Tipo de Tarea</th>
+                                                                                
+                                    </tr>
+                                </thead>');
+                        print('<tbody>');
+                            while($RegistrosTabla=$obCon->FetchAssoc($Consulta)){
+                                
+                                $idItem=$RegistrosTabla["ID"];
+                                
+                                print('<tr>');
+                                    print("<td>");
+                                        print('<a onclick="frm_crear_editar_registro(`'.$idItem.'`)" ><i class="icon-pencil text-info"></i></a>');
+                                    print("</td>");
+                                    print("<td class='mailbox-name'>");
+                                        print($RegistrosTabla["ID"]);
+                                    print("</td>");
+                                    print("<td class='mailbox-subject text-flickr'>");
+                                        print("<strong>".$RegistrosTabla["tipo_tarea"]."</strong>");
+                                    print("</td>");
+                                    
+                                print('</tr>');
+
+                            }
+
+                        print('</tbody>');
+                    print('</table>');
+                $css->Cdiv();
+            $css->Cdiv();
+            
+        break; //Fin caso 7
+              
+        case 8:// dibujo el listado de las rutas de verificacion o rutinas
+            
+            $Limit=20;
+            $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
+            $db=$DatosEmpresa["db"];
+            $Page=$obCon->normalizar($_REQUEST["Page"]);
+            $NumPage=$obCon->normalizar($_REQUEST["Page"]);
+            if($Page==''){
+                $Page=1;
+                $NumPage=1;
+            }
+            
+            $BusquedasGenerales=$obCon->normalizar($_REQUEST["BusquedasGenerales"]);
+            
+            $Condicion=" WHERE ID<>'' ";
+            
+            if($BusquedasGenerales<>''){
+                $Condicion.=" AND ( t1.ID = '$BusquedasGenerales' or t1.NombreRuta like '%$BusquedasGenerales%' )";
+            }
+            
+            $PuntoInicio = ($Page * $Limit) - $Limit;
+            
+            $sql = "SELECT COUNT(ID) as Items 
+                   FROM catalogo_rutas_verificacion t1 $Condicion;";
+            
+            $Consulta=$obCon->QueryExterno($sql, HOST, USER, PW, $db, "");
+            
+            $totales = $obCon->FetchAssoc($Consulta);
+            $ResultadosTotales = $totales['Items'];
+                        
+            $sql="SELECT t1.* 
+                  FROM catalogo_rutas_verificacion t1 $Condicion ORDER BY ID DESC LIMIT $PuntoInicio,$Limit;";
+            $Consulta=$obCon->QueryExterno($sql, HOST, USER, PW, $db, "");
+                    
+            $css->div("", "box-body no-padding", "", "", "", "", "");
+                $css->div("", "mailbox-controls", "", "", "", "", "");
+                
+                    print('<div class="row widget-separator-1 mb-3">
+                                <div class="col-md-3">
+                                    <div class="widget-1">
+                                        <div class="content">
+                                            <div class="row align-items-center">
+                                                <div class="col">
+                                                    <h5 class="title">Rutinas</h5>
+                                                    <span class="descr">Total Regitros: </span>
+                                                </div>
+                                                <div class="col text-right">
+                                                    <div class="number text-primary">'.number_format($ResultadosTotales).'</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                
+                                </div>
+                                <div class="col-md-3">
+                                
+                                </div>
+                                <div class="col-md-3">
+                                
+                                
+                            ');
+                   
+                    $css->div("", "pull-right", "", "", "", "", "");
+                        if($ResultadosTotales>$Limit){
+                            $TotalPaginas= ceil($ResultadosTotales/$Limit);                               
+                            print('<div class="btn-group">');
+                            $disable='disabled="true"';
+                            $Color="dark";
+                            $NumPage1=$NumPage;
+                            if($NumPage>1){
+                                $disable="";
+                                $Color="info";
+                                $NumPage1=$NumPage-1;
+                                print('<button class="btn btn-'.$Color.' btn-pill" onclick=CambiePagina(`1`,`'.$NumPage1.'`) style="cursor:pointer" '.$disable.'><i class="fa fa-chevron-left" '.$disable.'></i></button>');
+                            }
+                            
+                            
+                            $FuncionJS="onchange=CambiePagina(`1`);";
+                            $css->select("CmbPage", "btn btn-light text-dark btn-pill", "CmbPage", "", "", $FuncionJS, "");
+
+                                for($p=1;$p<=$TotalPaginas;$p++){
+                                    if($p==$NumPage){
+                                        $sel=1;
+                                    }else{
+                                        $sel=0;
+                                    }
+
+                                    $css->option("", "", "", $p, "", "",$sel);
+                                        print($p);
+                                    $css->Coption();
+
+                                }
+
+                            $css->Cselect();
+                            $disable='disabled="true"';
+                            $Color="dark";
+                            if($ResultadosTotales>($PuntoInicio+$Limit)){
+                                $disable="";
+                                $Color="info";
+                                $NumPage1=$NumPage+1;
+                                print('<span class="btn btn-info btn-pill" onclick=CambiePagina(`1`,`'.$NumPage1.'`) style=cursor:pointer><i class="fa fa-chevron-right" ></i></span>');
+                            }
+                             
+                            
+                            print("</div>");
+                        }    
+                        $css->Cdiv();
+                        $css->Cdiv();
+                    $css->Cdiv();
+                $css->Cdiv();
+                   
+                $css->CrearDiv("", "table-responsive mailbox-messages", "", 1, 1);
+                    print('<table class="table table-hover table-striped">');
+                        print('<thead>
+                                    <tr>
+                                        <th>Acciones</th>
+                                        <th>ID</th>
+                                        <th>Nombre de la Rutina</th>
+                                        <th>Descripción</th>                                        
+                                    </tr>
+                                </thead>');
+                        print('<tbody>');
+                            while($RegistrosTabla=$obCon->FetchAssoc($Consulta)){
+                                
+                                $idItem=$RegistrosTabla["ID"];
+                                
+                                print('<tr>');
+                                    print("<td>");
+                                        print('<a onclick="frm_crear_editar_registro(`'.$idItem.'`)" ><i class="icon-pencil text-info"></i></a>');
+                                    print("</td>");
+                                    print("<td class='mailbox-name'>");
+                                        print($RegistrosTabla["ID"]);
+                                    print("</td>");
+                                    print("<td class='mailbox-subject text-primary'>");
+                                        print("<strong>".$RegistrosTabla["NombreRuta"]."</strong>");
+                                    print("</td>");
+                                    
+                                    print("<td class='mailbox-subject'>");
+                                        print("<strong>".$RegistrosTabla["Descripcion"]."</strong>");
+                                    print("</td>");
+                                    
+                                print('</tr>');
+
+                            }
+
+                        print('</tbody>');
+                    print('</table>');
+                $css->Cdiv();
+            $css->Cdiv();
+            
+        break; //Fin caso 8
     }
     
     

@@ -19,9 +19,13 @@ class Mantenimiento extends conexion{
                     (SELECT ubicacion_id FROM equipos_maquinas t5 WHERE t5.ID=t1.maquina_id LIMIT 1) AS ubicacion_id,
                     (SELECT NombreSeccion FROM catalogo_secciones t6 WHERE t6.ID=(SELECT ubicacion_id) LIMIT 1) AS nombre_ubicacion,
                     (SELECT Nombre FROM equipos_componentes t7 WHERE t7.ID=t1.componente_id LIMIT 1) AS nombre_componente,
-                    (SELECT NumeroSerie FROM equipos_componentes t7 WHERE t7.ID=t1.componente_id LIMIT 1) AS serie_componente
+                    (SELECT NumeroSerie FROM equipos_componentes t7 WHERE t7.ID=t1.componente_id LIMIT 1) AS serie_componente,
+                    (SELECT (frecuencia_mtto_horas+horas_ultimo_mantenimiento-horas_trabajo) FROM equipos_componentes t7 WHERE t7.ID=t1.componente_id LIMIT 1) AS diferencia_horas,
+                    (SELECT (frecuencia_mtto_kilometros+kilometros_ultimo_mantenimiento-kilometros_trabajo) FROM equipos_componentes t7 WHERE t7.ID=t1.componente_id LIMIT 1) AS diferencia_kilometros,
+                    (SELECT DATEDIFF(now(),t1.`fecha_programada` )) as DiferenciaDias, 
+                    (SELECT IF(estado<3 and (DiferenciaDias>=0 or diferencia_horas < 0 or diferencia_kilometros < 0 ),'0','1')) as estado_ejecucion
                     
-                FROM `ordenes_trabajo` t1 ORDER BY `estado`,`tipo_mantenimiento`;";
+                FROM `ordenes_trabajo` t1 ORDER BY estado_ejecucion,`estado`,`tipo_mantenimiento`;";
         
         $this->QueryExterno($sql, HOST, USER, PW, $db, "");
     }
@@ -41,6 +45,9 @@ class Mantenimiento extends conexion{
         
         if($ruta_verificacion_id==''){
             $ruta_verificacion_id=0;
+        }
+        if($frecuencia_ruta_verificacion==''){
+            $frecuencia_ruta_verificacion=0;
         }
         
         $Tabla="ordenes_trabajo";

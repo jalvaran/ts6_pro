@@ -2343,7 +2343,7 @@ class PageConstruct extends html_estruct_class{
             print('<div class="form-heading">'.$form_title.'</div>');
             print('<div class="row">');
             foreach ($Columnas["Field"] as $key => $NombreCol) {
-
+                
                 if(isset($Columnas["Field"][$key])){
 
                     $Nombre=$Columnas["Field"][$key];
@@ -2358,7 +2358,7 @@ class PageConstruct extends html_estruct_class{
                     if($DatosValidacion["ID"]>0){
                         continue;
                     }
-                    if($Nombre=='Created' or $Nombre=='Updated' or $Nombre=='Sync'){
+                    if($Nombre=='Created' or $Nombre=='Updated' or $Nombre=='created' or $Nombre=='updated' or $Nombre=='Sync'){
                         continue;
                     }
                     if($Index=='PRI' and $Extra=='auto_increment'){

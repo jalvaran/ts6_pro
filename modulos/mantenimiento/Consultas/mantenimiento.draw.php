@@ -58,8 +58,12 @@ if( !empty($_REQUEST["Accion"]) ){
                 $Condicion.=" AND t1.tipo_mantenimiento = '$cmb_tipo_mantenimiento' ";
             }
             
-            if($cmb_estado<>''){
+            if($cmb_estado<>'' and $cmb_estado<>'1'){
                 $Condicion.=" AND t1.estado = '$cmb_estado' ";
+            }
+            
+            if($cmb_estado=='1'){
+                $Condicion.=" AND t1.estado_ejecucion = '0' ";
             }
             
             $PuntoInicio = ($Page * $Limit) - $Limit;
@@ -160,10 +164,13 @@ if( !empty($_REQUEST["Accion"]) ){
                         print('<thead>
                                     <tr>
                                         <th>PDF</th>
+                                        <th>Ver Adjuntos</th>
                                         <th>Editar</th>
                                         <th>Cerrar</th>
                                         <th>ID</th>
                                         <th>Fecha Programada</th>
+                                        <th>Hrs Pasadas</th>
+                                        <th>Kms Pasados</th>
                                         <th>Mantenimiento</th>
                                         <th>Máquina</th>                                        
                                         <th>Componente</th>
@@ -182,16 +189,23 @@ if( !empty($_REQUEST["Accion"]) ){
                                 $idItem=$RegistrosTabla["ID"];
                                 
                                 print('<tr>');
-                                    print("<td>");
+                                    print("<td style='text-align:center'>");
                                         $link="../../general/Consultas/PDF_Documentos.draw.php?idDocumento=1&empresa_id=1&id=$idItem";
                                         print('<a style="font-size:25px;color:green" href="'.$link.'" target="_blank" title="Ver PDF" title="Ver PDF" ><i class="far fa-file-pdf text-error"></i></a>');
-                                    print("</td>");
+                                    print("</td style='text-align:center'>");
                                     print("<td>");
-                                        print('<a style="font-size:25px;" title="Editar Orden" onclick="frm_crear_editar_registro(`'.$idItem.'`)" ><i class="icon-pencil text-info"></i></a>');
+                                        print('<a style="font-size:25px;text-align:center" title="Ver Adjuntos" onclick="listar_adjuntos_ot(`'.$RegistrosTabla["orden_trabajo_id"].'`,`div_modal_view`,`modal_view`)" ><i class="fa fa-paperclip text-primary"></i></a>');
                                                                                 
-                                    print("</td>");
+                                    print("</td style='text-align:center'>");
                                     print("<td>");
-                                        print('<a onclick="form_cerrar_orden(`'.$idItem.'`)" title="Cerrar Orden"  ><i style="font-size:25px;color:red" class="fa fa-clipboard-list"></i></a>');
+                                        if($RegistrosTabla["estado"]<3){
+                                            print('<a style="font-size:25px;text-align:center" title="Editar Orden" onclick="frm_crear_editar_registro(`'.$idItem.'`)" ><i class="icon-pencil text-info"></i></a>');
+                                        }                                       
+                                    print("</td style='text-align:center'>");
+                                    print("<td>");
+                                        if($RegistrosTabla["estado"]<3){
+                                            print('<a onclick="form_cerrar_orden(`'.$idItem.'`)" title="Cerrar Orden" style="text-align:center" ><i style="font-size:25px;color:red" class="fa fa-clipboard-list"></i></a>');
+                                        }
                                     print("</td>");
                                     print("<td class='mailbox-name'>");
                                         print($RegistrosTabla["ID"]);
@@ -199,6 +213,23 @@ if( !empty($_REQUEST["Accion"]) ){
                                     print("<td class='mailbox-subject text-primary'>");
                                         print("<strong>".$RegistrosTabla["fecha_programada"]."</strong>");
                                     print("</td>");
+                                    print("<td class='mailbox-subject text-primary'>");
+                                        if($RegistrosTabla["diferencia_horas"]<0){
+                                            $horas_pasadas=abs($RegistrosTabla["diferencia_horas"]);
+                                        }else{
+                                            $horas_pasadas=0;
+                                        }
+                                        print("<strong>".number_format($horas_pasadas)."</strong>");
+                                    print("</td>");
+                                    print("<td class='mailbox-subject text-primary'>");
+                                        if($RegistrosTabla["diferencia_kilometros"]<0){
+                                            $kilometros_pasados=abs($RegistrosTabla["diferencia_kilometros"]);
+                                        }else{
+                                            $kilometros_pasados=0;
+                                        }
+                                        print("<strong>".number_format($kilometros_pasados)."</strong>");
+                                    print("</td>");
+                                    
                                     print("<td class='mailbox-subject'>");
                                         print($RegistrosTabla["nombre_tipo_mantenimiento"]);
                                     print("</td>");                                    
@@ -500,6 +531,7 @@ if( !empty($_REQUEST["Accion"]) ){
         case 9: //Dibuja los adjuntos en una orden de trabajo
             $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
             $orden_trabajo_id=$obCon->normalizar($_REQUEST["orden_trabajo_id"]);
+            $idModal=$obCon->normalizar($_REQUEST["idModal"]);
             $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
             $db=$DatosEmpresa["db"];
             $DatosOT=$obCon->DevuelveValores("$db.ordenes_trabajo", "orden_trabajo_id", $orden_trabajo_id);
@@ -513,8 +545,10 @@ if( !empty($_REQUEST["Accion"]) ){
                 
                     $css->ColTabla("ID", 1);
                     $css->ColTabla("Nombre de Archivo", 1);
-                    //$css->ColTabla("Link", 1);                    
-                    $css->ColTabla("Eliminar", 1);
+                    //$css->ColTabla("Link", 1);   
+                    if($idModal==""){
+                        $css->ColTabla("Eliminar", 1);
+                    }
                 $css->CierraFilaTabla();
                 
                 $sql="SELECT t1.*
@@ -533,9 +567,11 @@ if( !empty($_REQUEST["Accion"]) ){
                             $Ruta= "../../".str_replace("../", "", $DatosConsulta["Ruta"]);
                             print('<a href="'.$Ruta.'" target="blank">'.$Nombre.' <li class="fa fa-paperclip"></li></a>');
                         print('</td>');
-                        print('<td style="text-align:center;color:red;font-size:18px;">');
-                            print('<li class="far fa-times-circle" style="cursor:pointer;" onclick="eliminarItem(`5`,`'.$idItem.'`)"></li>');
-                        print('</td>');
+                        if($idModal==""){
+                            print('<td style="text-align:center;color:red;font-size:18px;">');
+                                print('<li class="far fa-times-circle" style="cursor:pointer;" onclick="eliminarItem(`5`,`'.$idItem.'`)"></li>');
+                            print('</td>');
+                        }    
                     $css->CierraFilaTabla();
                 }
             $css->CerrarTabla();

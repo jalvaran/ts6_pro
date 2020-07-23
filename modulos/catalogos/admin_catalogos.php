@@ -15,7 +15,7 @@ $urlRequest= explode("/", $urlRequest);
 $Pagina=end($urlRequest);
 
 $myPage=$Pagina;
-$myTitulo="Administrar Equipos";
+$myTitulo="Catalogos Generales";
 include_once("../../sesiones/php_control_usuarios.php");
 include_once("../../constructores/paginas_constructor.php");
 
@@ -64,12 +64,20 @@ $css->PageInit($myTitulo);
                 print("Ubicaciones o Secciones");
             $css->Coption();
             
+            $css->option("", "", "", 6, "", "");
+                print("Tipo de Tareas");
+            $css->Coption();
+            
             $css->option("", "", "", 3, "", "");
                 print("Tareas");
             $css->Coption();
             
             $css->option("", "", "", 4, "", "");
-                print("Ténicos");
+                print("Técnicos");
+            $css->Coption();
+            
+            $css->option("", "", "", 7, "", "");
+                print("Rutinas");
             $css->Coption();
             
         $css->Cselect();

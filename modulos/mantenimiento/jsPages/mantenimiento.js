@@ -1325,18 +1325,21 @@ function add_events_dropzone_ot(cierre_orden=0){
 }
 
 
-function listar_adjuntos_ot(orden_trabajo_id="",idDiv="div_adjuntos_ot"){
+function listar_adjuntos_ot(orden_trabajo_id="",idDiv="div_adjuntos_ot",idModal=""){
       
     var empresa_id=document.getElementById('empresa_id').value;
     if(orden_trabajo_id==''){
         var orden_trabajo_id=$("#soportes_ot").data("ot_id");
+    }
+    if(idModal!=""){
+        openModal(idModal);
     }
     urlQuery='Consultas/mantenimiento.draw.php';    
     var form_data = new FormData();
         form_data.append('Accion', 9);        
         form_data.append('orden_trabajo_id', orden_trabajo_id);
         form_data.append('empresa_id', empresa_id);
-        
+        form_data.append('idModal', idModal);
         $.ajax({// se arma un objecto por medio de ajax  
         url: urlQuery,// se indica donde llegara la informacion del objecto
         
