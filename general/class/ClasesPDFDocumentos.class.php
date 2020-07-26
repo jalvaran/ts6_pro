@@ -337,41 +337,74 @@ $this->PDF->writeHTML("<br>", true, false, false, false, '');
         
         $sql="SELECT t1.* FROM $db.equipos_componentes t1 WHERE t1.ID='".$DatosOrden["componente_id"]."'";
         $datosComponente=$this->obCon->FetchAssoc($this->obCon->Query($sql));
-        
-        $tbl = '
-        <table cellspacing="0" cellpadding="2" border="1">
-            <tr>
-                <td><strong>Fecha Programada:</strong></td>
-                <td>'.utf8_encode($DatosOrden["fecha_programada"]).'</td>
-                <td><strong>Maquina:</strong></td>
-                <td>'.utf8_encode($datosMaquina["Nombre"]." ".$datosMaquina["Marca"]).'</td>
-            </tr>
-            <tr>
-                <td><strong>Tipo de Mantenimiento:</strong></td>
-                <td>'.utf8_encode($datosTipoOrden["tipo_mantenimiento"]).'</td>
-                <td><strong>Ubicación:</strong></td>
-                <td>'.utf8_encode($datosMaquina["Ubicacion"]).'</td>    
+        if($DatosOrden["tipo_mantenimiento"]<>3){
+            $tbl = '
+            <table cellspacing="0" cellpadding="2" border="1">
+                <tr>
+                    <td><strong>Fecha Programada:</strong></td>
+                    <td>'.utf8_encode($DatosOrden["fecha_programada"]).'</td>
+                    <td><strong>Maquina:</strong></td>
+                    <td>'.($datosMaquina["Nombre"]." ".$datosMaquina["Marca"]).'</td>
+                </tr>
+                <tr>
+                    <td><strong>Tipo de Mantenimiento:</strong></td>
+                    <td>'.utf8_encode($datosTipoOrden["tipo_mantenimiento"]).'</td>
+                    <td><strong>Ubicación:</strong></td>
+                    <td>'.($datosMaquina["Ubicacion"]).'</td>    
 
-            </tr>
-            
-            <tr>
-                <td ><strong>Creada por:</strong></td>                
-                <td>'.utf8_encode($DatosUsuario["NombreUsuario"]).'</td>
-                <td><strong>Componente:</strong></td>
-                <td>'.utf8_encode($datosComponente["Nombre"]." ".$datosComponente["NumeroSerie"]).'</td>       
-            </tr>
-            
-            <tr>
-                <td><strong>Observaciones Iniciales:</strong></td>                
-                <td >'.utf8_encode($DatosOrden["observaciones_orden"]).'</td>
-                <td><strong>Horas de Duración o Parada:</strong></td>
-                <td> </td> 
-            </tr>
-            
-        </table>
+                </tr>
 
-        ';
+                <tr>
+                    <td ><strong>Creada por:</strong></td>                
+                    <td>'.($DatosUsuario["NombreUsuario"]).'</td>
+                    <td><strong>Componente:</strong></td>
+                    <td>'.($datosComponente["Nombre"]." ".$datosComponente["NumeroSerie"]).'</td>       
+                </tr>
 
+                <tr>
+                    <td><strong>Observaciones Iniciales:</strong></td>                
+                    <td >'.($DatosOrden["observaciones_orden"]).'</td>
+                    <td><strong>Horas de Duración o Parada:</strong></td>
+                    <td> '.($DatosOrden["tiempo_parada"]).'</td> 
+                </tr>
+
+            </table>
+
+            ';
+        }else{
+            $datosRutina=$this->obCon->DevuelveValores("$db.catalogo_rutas_verificacion", "ID", $DatosOrden["ruta_verificacion_id"]);
+            $tbl = '
+            <table cellspacing="0" cellpadding="2" border="1">
+                <tr>
+                    <td><strong>Fecha Programada:</strong></td>
+                    <td>'.utf8_encode($DatosOrden["fecha_programada"]).'</td>
+                    <td><strong>Nombre de la Rutina:</strong></td>
+                    <td>'.($datosRutina["NombreRuta"]).'</td>
+                </tr>
+                <tr>
+                    <td><strong>Tipo de Mantenimiento:</strong></td>
+                    <td>'.utf8_encode($datosTipoOrden["tipo_mantenimiento"]).'</td>
+                    <td rowspan="3"><strong>Descripción de la Rutina:</strong></td>
+                    <td rowspan="3">'.($datosRutina["Descripcion"]).'</td>    
+
+                </tr>
+
+                <tr>
+                    <td ><strong>Creada por:</strong></td>                
+                    <td>'.($DatosUsuario["NombreUsuario"]).'</td>
+                    
+                </tr>
+
+                <tr>
+                    <td><strong>Observaciones Iniciales:</strong></td>                
+                    <td >'.($DatosOrden["observaciones_orden"]).'</td>
+                    
+                </tr>
+
+            </table>
+
+            ';
+        }
         return($tbl);
     
     }

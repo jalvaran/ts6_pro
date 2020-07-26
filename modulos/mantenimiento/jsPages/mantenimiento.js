@@ -287,10 +287,10 @@ function obtenerFrecuenciasComponente(componente_id=''){
                 var jsonComponente=JSON.parse(respuestas[1]);
                 console.log(jsonComponente)
                 if(jsonComponente.fecha_ultimo_mantenimiento == '' || jsonComponente.fecha_ultimo_mantenimiento == null ){
-                    $("#fecha_ultimo_mantenimiento").prop('disabled', false);
+                    //$("#fecha_ultimo_mantenimiento").prop('disabled', false);
                     document.getElementById('fecha_ultimo_mantenimiento').value='';                    
                 }else{
-                    $("#fecha_ultimo_mantenimiento").prop('disabled', true);
+                    //$("#fecha_ultimo_mantenimiento").prop('disabled', true);
                     
                 }
                 document.getElementById('fecha_ultimo_mantenimiento').value=jsonComponente.fecha_ultimo_mantenimiento;

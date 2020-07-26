@@ -155,12 +155,19 @@ class Mantenimiento extends conexion{
         }
         $diasDiferencia=$this->obtenerDiferenciaFechasDias($fecha_cierre , date("Y-m-d"));
 
-        $sql="UPDATE equipos_componentes SET fecha_ultimo_mantenimiento='$fecha_cierre',
-                dias_ultimo_mantenimiento='$diasDiferencia',
+        $sql="UPDATE equipos_componentes SET 
                 $setFrecuenciaHoras
                 $setFrecuenciaKilometros
                 usuario_id_update='$idUser'    
                 WHERE maquina_id='".$DatosComponente["maquina_id"]."'
+                   ";
+        $this->QueryExterno($sql, HOST, USER, PW, $db, "");
+        
+        $sql="UPDATE equipos_componentes SET fecha_ultimo_mantenimiento='$fecha_cierre',
+                dias_ultimo_mantenimiento='$diasDiferencia',
+                
+                usuario_id_update='$idUser'    
+                WHERE ID='".$DatosComponente["ID"]."'
                    ";
         $this->QueryExterno($sql, HOST, USER, PW, $db, "");
         

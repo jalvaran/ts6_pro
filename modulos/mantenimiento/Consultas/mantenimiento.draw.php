@@ -192,8 +192,8 @@ if( !empty($_REQUEST["Accion"]) ){
                                     print("<td style='text-align:center'>");
                                         $link="../../general/Consultas/PDF_Documentos.draw.php?idDocumento=1&empresa_id=1&id=$idItem";
                                         print('<a style="font-size:25px;color:green" href="'.$link.'" target="_blank" title="Ver PDF" title="Ver PDF" ><i class="far fa-file-pdf text-error"></i></a>');
-                                    print("</td style='text-align:center'>");
-                                    print("<td>");
+                                    print("</td>");
+                                    print("<td style='text-align:center'>");
                                         print('<a style="font-size:25px;text-align:center" title="Ver Adjuntos" onclick="listar_adjuntos_ot(`'.$RegistrosTabla["orden_trabajo_id"].'`,`div_modal_view`,`modal_view`)" ><i class="fa fa-paperclip text-primary"></i></a>');
                                                                                 
                                     print("</td style='text-align:center'>");

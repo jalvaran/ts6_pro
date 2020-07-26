@@ -150,18 +150,21 @@ class PageConstruct extends html_estruct_class{
                                         </div>
                                         <div class="menu-dropdown-body">
                                             <ul class="menu-nav">
+                                                <!--
                                                 <li><a href="#"><i class="icon-event"></i><span>My Events</span></a></li>
                                                 <li><a href="#"><i class="icon-notebook"></i><span>My Notes</span></a></li>
                                                 <li><a href="#"><i class="icon-user"></i><span>My Profile</span></a></li>
                                                 <li><a href="#"><i class="icon-globe-alt"></i><span>Client Portal</span></a></li>
+                                                -->
                                             </ul>
                                         </div>
                                         <div class="menu-dropdown-footer text-right">
-                                            <a href="#" class="btn btn-outline btn-primary btn-pill btn-outline-2x font-12 btn-sm">Logout</a>
+                                            <a href="../../destruir.php" class="btn btn-outline btn-primary btn-pill btn-outline-2x font-12 btn-sm">Logout</a>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                            <!--
                             <div class="page-menu menu-dropdown-wrapper menu-notification">
                                 <a><i class="icon-bell"></i><span class="notification">20</span></a>
                                 <div class="menu-dropdown menu-dropdown-right menu-dropdown-push-right">
@@ -205,6 +208,9 @@ class PageConstruct extends html_estruct_class{
                                     </div>
                                 </div>
                             </div>
+                            -->
+                            
+                            <!--
                             <div class="page-menu menu-dropdown-wrapper menu-quick-links">
                                 <a><i class="icon-grid"></i></a>
                                 <div class="menu-dropdown menu-dropdown-right menu-dropdown-push-right">
@@ -242,6 +248,7 @@ class PageConstruct extends html_estruct_class{
                                     </div>
                                 </div>
                             </div>
+                            -->
                             <div class="page-menu">
                                 <!-- <a class="open-sidebar-right"><i class="icon-settings"></i><span></span></a> -->
                             </div>
@@ -736,7 +743,7 @@ class PageConstruct extends html_estruct_class{
         print('<!-- Page Footer -->
             
             <div class="page-ftr">
-                <div>© '.$anio.'. Techno Soluciones SAS AND PRODG SAS</div>
+                <div>© '.$anio.'. Techno Soluciones SAS AND PRODG LTDA</div>
             </div>
         ');
     }
