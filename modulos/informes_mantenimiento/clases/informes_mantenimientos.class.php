@@ -27,10 +27,11 @@ class InformesMantenimientos extends conexion{
                     (SELECT NombreSeccion FROM catalogo_secciones t6 WHERE t6.ID=(SELECT ubicacion_id) LIMIT 1) AS nombre_ubicacion,
                     (SELECT Nombre FROM equipos_componentes t7 WHERE t7.ID=t1.componente_id LIMIT 1) AS nombre_componente,
                     (SELECT NumeroSerie FROM equipos_componentes t7 WHERE t7.ID=t1.componente_id LIMIT 1) AS serie_componente,
-                    (SELECT COUNT(*) FROM vista_ordenes_trabajo_tareas t8 WHERE t8.maquina_id=t1.maquina_id LIMIT 1) AS total_tareas_maquinas, 
-                    (SELECT COUNT(*) FROM vista_ordenes_trabajo_tareas t8 WHERE t8.componente_id=t1.componente_id LIMIT 1) AS total_tareas_componentes  
+                    (SELECT COUNT(*) FROM vista_ordenes_trabajo_tareas t8 WHERE t8.maquina_id=t1.maquina_id AND t8.tipo_mantenimiento=t1.tipo_mantenimiento LIMIT 1) AS total_tareas_maquinas, 
                     
-                FROM `ordenes_trabajo` t1 WHERE t1.tipo_mantenimiento<=2 AND (t1.Estado=3 or t1.Estado=4) $condicion_fecha GROUP BY t1.tipo_mantenimiento,t1.maquina_id,t1.componente_id";
+                    (SELECT SUM(total) FROM vista_ordenes_trabajo_costos t8 WHERE t8.maquina_id=t1.maquina_id AND t8.tipo_mantenimiento=t1.tipo_mantenimiento LIMIT 1) AS total_costos
+                    
+                FROM `ordenes_trabajo` t1 WHERE t1.tipo_mantenimiento<=2 AND (t1.Estado=3 or t1.Estado=4) $condicion_fecha GROUP BY t1.tipo_mantenimiento,t1.maquina_id";
         
         $this->QueryExterno($sql, HOST, USER, PW, $db, "");
     }
