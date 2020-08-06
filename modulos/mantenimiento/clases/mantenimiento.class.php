@@ -11,7 +11,7 @@ class Mantenimiento extends conexion{
         
         $sql="CREATE VIEW vista_ordenes_trabajo AS
                 SELECT t1.*,
-                    (SELECT nombre_estado FROM $principalDb.ordenes_trabajo_estados t2 WHERE t2.ID=t1.estado LIMIT 1) AS nombre_estado,
+                    
                     (SELECT tipo_mantenimiento FROM $principalDb.ordenes_trabajo_tipo_mantenimiento t3 WHERE t3.ID=t1.tipo_mantenimiento LIMIT 1) AS nombre_tipo_mantenimiento,
                     (SELECT NombreTecnico FROM catalogo_tecnicos t4 WHERE t4.ID=t1.tecnico_id LIMIT 1) AS nombre_tecnico, 
                     (SELECT Nombre FROM equipos_maquinas t5 WHERE t5.ID=t1.maquina_id LIMIT 1) AS nombre_maquina,
@@ -23,9 +23,9 @@ class Mantenimiento extends conexion{
                     (SELECT (frecuencia_mtto_horas+horas_ultimo_mantenimiento-horas_trabajo) FROM equipos_componentes t7 WHERE t7.ID=t1.componente_id LIMIT 1) AS diferencia_horas,
                     (SELECT (frecuencia_mtto_kilometros+kilometros_ultimo_mantenimiento-kilometros_trabajo) FROM equipos_componentes t7 WHERE t7.ID=t1.componente_id LIMIT 1) AS diferencia_kilometros,
                     (SELECT DATEDIFF(now(),t1.`fecha_programada` )) as DiferenciaDias, 
-                    (SELECT IF(estado<3 and (DiferenciaDias>=0 or diferencia_horas < 0 or diferencia_kilometros < 0 ),'0','1')) as estado_ejecucion
-                    
-                FROM `ordenes_trabajo` t1 ORDER BY estado_ejecucion,`estado`,`tipo_mantenimiento`;";
+                    (SELECT IF(estado<3 and (DiferenciaDias>=0 or diferencia_horas < 0 or diferencia_kilometros < 0 ),'1',( t1.estado))) as estado_ejecucion,
+                    (SELECT nombre_estado FROM $principalDb.ordenes_trabajo_estados t2 WHERE t2.ID=(SELECT estado_ejecucion) LIMIT 1) AS nombre_estado 
+                FROM `ordenes_trabajo` t1 ORDER BY estado_ejecucion,`tipo_mantenimiento`;";
         
         $this->QueryExterno($sql, HOST, USER, PW, $db, "");
     }
@@ -46,8 +46,13 @@ class Mantenimiento extends conexion{
         if($ruta_verificacion_id==''){
             $ruta_verificacion_id=0;
         }
-        if($frecuencia_ruta_verificacion==''){
-            $frecuencia_ruta_verificacion=0;
+        $frecuencia_orden=0;
+        
+        if($orden_tabajo_tipo_id=='3'){
+            $frecuencia_orden=$frecuencia_ruta_verificacion;
+        }
+        if($orden_tabajo_tipo_id=='2'){
+            $frecuencia_orden=$frecuencia_dias;
         }
         
         $Tabla="ordenes_trabajo";
@@ -61,7 +66,7 @@ class Mantenimiento extends conexion{
         $Datos["componente_id"]=$componente_id;
         $Datos["observaciones_orden"]=$observaciones_orden;
         $Datos["ruta_verificacion_id"]=$ruta_verificacion_id;
-        $Datos["frecuencia_ruta_verificacion"]=$frecuencia_ruta_verificacion;
+        $Datos["frecuencia_orden"]=$frecuencia_orden;
         $Datos["observaciones_cierre"]="";
         $Datos["observaciones_anulacion"]="";
         $Datos["tecnico_id"]=0;

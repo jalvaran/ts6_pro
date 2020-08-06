@@ -58,14 +58,16 @@ if( !empty($_REQUEST["Accion"]) ){
                 $Condicion.=" AND t1.tipo_mantenimiento = '$cmb_tipo_mantenimiento' ";
             }
             
-            if($cmb_estado<>'' and $cmb_estado<>'1'){
-                $Condicion.=" AND t1.estado = '$cmb_estado' ";
+            if($cmb_estado<>''){
+                $Condicion.=" AND t1.estado_ejecucion = '$cmb_estado' ";
             }
-            
+            /*
             if($cmb_estado=='1'){
-                $Condicion.=" AND t1.estado_ejecucion = '0' ";
+                $Condicion.=" AND t1.estado_ejecucion = '1' ";
             }
             
+             * 
+             */
             $PuntoInicio = ($Page * $Limit) - $Limit;
             
             $sql = "SELECT COUNT(ID) as Items 

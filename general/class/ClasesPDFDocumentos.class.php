@@ -343,8 +343,14 @@ $this->PDF->writeHTML("<br>", true, false, false, false, '');
                 <tr>
                     <td><strong>Fecha Programada:</strong></td>
                     <td>'.utf8_encode($DatosOrden["fecha_programada"]).'</td>
+                    <td><strong>Fecha de Cierre:</strong></td>
+                    <td>'.($DatosOrden["fecha_cierre"]).'</td>
+                </tr>
+                <tr>
+                    <td><strong>Frecuencia Orden:</strong></td>
+                    <td>'.utf8_encode($DatosOrden["frecuencia_orden"]).' días</td>
                     <td><strong>Maquina:</strong></td>
-                    <td>'.($datosMaquina["Nombre"]." ".$datosMaquina["Marca"]).'</td>
+                    <td>'.utf8_encode($datosMaquina["Nombre"]." ".$datosMaquina["Marca"]).'</td>
                 </tr>
                 <tr>
                     <td><strong>Tipo de Mantenimiento:</strong></td>
@@ -378,8 +384,14 @@ $this->PDF->writeHTML("<br>", true, false, false, false, '');
                 <tr>
                     <td><strong>Fecha Programada:</strong></td>
                     <td>'.utf8_encode($DatosOrden["fecha_programada"]).'</td>
-                    <td><strong>Nombre de la Rutina:</strong></td>
-                    <td>'.($datosRutina["NombreRuta"]).'</td>
+                    <td><strong>Fecha de Cierre:</strong></td>
+                    <td>'.($DatosOrden["fecha_cierre"]).'</td>
+                </tr>
+                <tr>
+                    <td><strong>Frecuencia Orden:</strong></td>
+                    <td>'.utf8_encode($DatosOrden["frecuencia_orden"]).' días</td>
+                    <td><strong>Maquina:</strong></td>
+                    <td>'.utf8_encode($datosMaquina["Nombre"]." ".$datosMaquina["Marca"]).'</td>
                 </tr>
                 <tr>
                     <td><strong>Tipo de Mantenimiento:</strong></td>

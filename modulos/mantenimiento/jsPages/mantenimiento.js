@@ -294,7 +294,7 @@ function obtenerFrecuenciasComponente(componente_id=''){
                     
                 }
                 document.getElementById('fecha_ultimo_mantenimiento').value=jsonComponente.fecha_ultimo_mantenimiento;
-                document.getElementById('frecuencia_dias').value=jsonComponente.frecuencia_mtto_dias;
+                //document.getElementById('frecuencia_dias').value=jsonComponente.frecuencia_mtto_dias;
                 //document.getElementById('frecuencia_verificacion_dias').value=jsonComponente.frecuencia_verificacion_dias;
                 document.getElementById('frecuencia_horas').value=jsonComponente.frecuencia_mtto_horas;
                 document.getElementById('frecuencia_kilometros').value=jsonComponente.frecuencia_mtto_kilometros;

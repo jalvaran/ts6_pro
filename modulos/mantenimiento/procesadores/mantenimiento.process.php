@@ -468,10 +468,11 @@ if( !empty($_REQUEST["Accion"]) ){
             $obCon->cerrar_orden_trabajo_preventivo($db, $DatosOrden, $DatosComponente, $orden_trabajo_id, $fecha_cierre,  $horas_ultimo_mantenimiento, $kilometros_ultimo_mantenimiento, $tecnico_id, $observaciones_cierre,$tiempo_parada, $idUser);
             $nuevo_id=$obCon->getUniqId("ot_");
             
-            $Dias=$DatosComponente["frecuencia_mtto_dias"];
+            $Dias=$DatosOrden["frecuencia_orden"];
             
             $fecha_programada=$obCon->SumeDiasFecha($fecha_cierre, $Dias);
-            $obCon->crearEditarOrdenTrabajo($db, "", $nuevo_id, $DatosOrden["tipo_mantenimiento"], $fecha_programada, $DatosOrden["maquina_id"], $DatosOrden["componente_id"], "", "","", "","", "", $DatosOrden["observaciones_orden"], $idUser,0);
+            //$obCon->crearEditarOrdenTrabajo($db, $edit_id, $orden_trabajo_id, $orden_tabajo_tipo_id, $fecha_programada, $maquina_id, $componente_id, $fecha_ultimo_mantenimiento, $frecuencia_dias, $ruta_verificacion_id, $frecuencia_ruta_verificacion, $frecuencia_horas, $frecuencia_kilometros, $observaciones_orden, $idUser)
+            $obCon->crearEditarOrdenTrabajo($db, "", $nuevo_id, $DatosOrden["tipo_mantenimiento"], $fecha_programada, $DatosOrden["maquina_id"], $DatosOrden["componente_id"], "", $DatosOrden["frecuencia_orden"],"", "","", "", $DatosOrden["observaciones_orden"], $idUser,0);
             
             $sql="SELECT * FROM $db.ordenes_trabajo_tareas WHERE orden_trabajo_id='".$DatosOrden["orden_trabajo_id"]."'";
             $Consulta=$obCon->Query($sql);
@@ -637,11 +638,11 @@ if( !empty($_REQUEST["Accion"]) ){
             
             $nuevo_id=$obCon->getUniqId("ot_");
             
-            $Dias=$DatosOrden["frecuencia_ruta_verificacion"];
+            $Dias=$DatosOrden["frecuencia_orden"];
             
             $fecha_programada=$obCon->SumeDiasFecha($fecha_cierre, $Dias);
             
-            $obCon->crearEditarOrdenTrabajo($db, "", $nuevo_id, $DatosOrden["tipo_mantenimiento"], $fecha_programada, "", "", "", "", $DatosOrden["ruta_verificacion_id"], $DatosOrden["frecuencia_ruta_verificacion"], "", "", $DatosOrden["observaciones_orden"], $idUser,0);
+            $obCon->crearEditarOrdenTrabajo($db, "", $nuevo_id, $DatosOrden["tipo_mantenimiento"], $fecha_programada, "", "", "", "", $DatosOrden["ruta_verificacion_id"], $DatosOrden["frecuencia_orden"], "", "", $DatosOrden["observaciones_orden"], $idUser,0);
             $sql="SELECT * FROM $db.ordenes_trabajo_tareas WHERE orden_trabajo_id='".$DatosOrden["orden_trabajo_id"]."'";
             $Consulta=$obCon->Query($sql);
             while($DatosConsulta=$obCon->FetchAssoc($Consulta)){

@@ -23,7 +23,9 @@ FROM ordenes_trabajo_insumos  t1;
 
 DROP VIEW IF EXISTS `vista_ordenes_trabajo_fallas`;
 CREATE VIEW vista_ordenes_trabajo_fallas AS
-SELECT t1.*,    
+SELECT t1.*,  
+    (SELECT tiempo_parada FROM ordenes_trabajo t2 WHERE t1.orden_trabajo_id=t2.ID) as tiempo_parada,
+    (SELECT fecha_cierre FROM ordenes_trabajo t2 WHERE t1.orden_trabajo_id=t2.ID) as fecha_cierre,
     (SELECT maquina_id FROM ordenes_trabajo t2 WHERE t1.orden_trabajo_id=t2.ID) as maquina_id,   
     (SELECT Nombre FROM equipos_maquinas t3 WHERE t3.ID=(SELECT maquina_id)) as nombre_maquina, 
     (SELECT ubicacion_id FROM equipos_maquinas t3 WHERE t3.ID=(SELECT maquina_id)) as ubicacion_id, 
@@ -35,3 +37,4 @@ SELECT t1.*,
     (SELECT Estado FROM ordenes_trabajo t2 WHERE t1.orden_trabajo_id=t2.ID) as estado_orden_trabajo
     
 FROM ordenes_trabajo_fallas  t1;
+
