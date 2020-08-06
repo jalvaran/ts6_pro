@@ -421,7 +421,183 @@ $this->PDF->writeHTML("<br>", true, false, false, false, '');
     
     }
     
+    
+    public function html_indicadores_gestion($db,$Condicion) {
+        $tabla="vista_indicadores_ordenes_trabajo";
+        $sql="SELECT tipo_mantenimiento,SUM(total_ordenes) as total_ordenes,SUM(total_costos) as total_costos,SUM(total_tiempo_parada) as total_parada  
+                    FROM $tabla t1 $Condicion GROUP BY t1.tipo_mantenimiento";
+        $Consulta=$this->obCon->QueryExterno($sql, HOST, USER, PW, $db, "");
+        $Totales["correctivo"]["total_ordenes"]=0;
+        $Totales["correctivo"]["total_costos"]=0;
+        $Totales["correctivo"]["total_parada"]=0;
+        $Totales["preventivo"]["total_ordenes"]=0;
+        $Totales["preventivo"]["total_costos"]=0;
+        $Totales["preventivo"]["total_parada"]=0;
+        $TotalOrdenes=0;
+        $TotalCostos=0;
+        $TotalParadas=0;
+        while($datos_ordenes=$this->obCon->FetchAssoc($Consulta)){
+            $TotalOrdenes=$TotalOrdenes+$datos_ordenes["total_ordenes"];
+            $TotalCostos=$TotalCostos+$datos_ordenes["total_costos"];
+            $TotalParadas=$TotalParadas+$datos_ordenes["total_parada"];
+            if($datos_ordenes["tipo_mantenimiento"]==1){
+                $Totales["correctivo"]["total_ordenes"]=$datos_ordenes["total_ordenes"];
+                $Totales["correctivo"]["total_costos"]=$datos_ordenes["total_costos"];
+                $Totales["correctivo"]["total_parada"]=$datos_ordenes["total_parada"];
+            }
+            if($datos_ordenes["tipo_mantenimiento"]==2){
+                $Totales["preventivo"]["total_ordenes"]=$datos_ordenes["total_ordenes"];
+                $Totales["preventivo"]["total_costos"]=$datos_ordenes["total_costos"];
+                $Totales["preventivo"]["total_parada"]=$datos_ordenes["total_parada"];
+            }
+            
+            
+        }
+        if($TotalOrdenes==0){
+            $divisor=1;
+        }else{
+            $divisor=$TotalOrdenes;
+        }
+        $porcentaje_ordenes_preventivas=(100/$divisor)*$Totales["preventivo"]["total_ordenes"];
+        $porcentaje_ordenes_correctivas=(100/$divisor)*$Totales["correctivo"]["total_ordenes"];
+        
+        if($TotalCostos==0){
+            $divisor=1;
+        }else{
+            $divisor=$TotalCostos;
+        }
+        $porcentaje_costos_preventivas=(100/$divisor)*$Totales["preventivo"]["total_costos"];
+        $porcentaje_costos_correctivas=(100/$divisor)*$Totales["correctivo"]["total_costos"];
+        
+        if($TotalParadas==0){
+            $divisor=1;
+        }else{
+            $divisor=$TotalParadas;
+        }
+        $porcentaje_paradas_preventivas=(100/$divisor)*$Totales["preventivo"]["total_parada"];
+        $porcentaje_paradas_correctivas=(100/$divisor)*$Totales["correctivo"]["total_parada"];
+        
+        $html='<table cellspacing="3" cellpadding="2" border="1">';
+            //Número de órdenes
+            $html.='<tr>';
+                $html.='<th colspan="6" style="text-align:center"><strong>Número de Órdenes</strong></th>';            
+            $html.='</tr>';
+            $html.='<tr>';
+                $html.='<th colspan="3" style="text-align:center"><strong>Preventivas</strong></th>'; 
+                $html.='<th colspan="3" style="text-align:center"><strong>Correctivas</strong></th>'; 
+            $html.='</tr>';
+            $html.='<tr>';
+                $html.='<td style="text-align:center"><strong>Cantidad</strong></td>'; 
+                $html.='<td style="text-align:center"><strong>Total</strong></td>'; 
+                $html.='<td style="text-align:center"><strong>Porcentaje</strong></td>'; 
+                $html.='<td style="text-align:center"><strong>Cantidad</strong></td>'; 
+                $html.='<td style="text-align:center"><strong>Total</strong></td>'; 
+                $html.='<td style="text-align:center"><strong>Porcentaje</strong></td>'; 
+            $html.='</tr>';
+            $html.='<tr>';
+                $html.='<td style="text-align:right">'.number_format($Totales["preventivo"]["total_ordenes"],2).'</td>'; 
+                $html.='<td style="text-align:right">'.number_format($TotalOrdenes,2).'</td>'; 
+                $html.='<td style="text-align:right">'.number_format($porcentaje_ordenes_preventivas,2).' %</td>'; 
+                $html.='<td style="text-align:right">'.number_format($Totales["correctivo"]["total_ordenes"],2).'</td>'; 
+                $html.='<td style="text-align:right">'.number_format($TotalOrdenes,2).'</td>'; 
+                $html.='<td style="text-align:right">'.number_format($porcentaje_ordenes_correctivas,2).' %</td>'; 
+            $html.='</tr>';
+            
+            //Tiempos de parada
+            $html.='<tr>';
+                $html.='<th colspan="6" style="text-align:center"><strong>Tiempos de parada</strong></th>';            
+            $html.='</tr>';
+            $html.='<tr>';
+                $html.='<th colspan="3" style="text-align:center"><strong>Preventivas</strong></th>'; 
+                $html.='<th colspan="3" style="text-align:center"><strong>Correctivas</strong></th>'; 
+            $html.='</tr>';
+            $html.='<tr>';
+                $html.='<td style="text-align:center"><strong>Cantidad</strong></td>'; 
+                $html.='<td style="text-align:center"><strong>Total</strong></td>'; 
+                $html.='<td style="text-align:center"><strong>Porcentaje</strong></td>'; 
+                $html.='<td style="text-align:center"><strong>Cantidad</strong></td>'; 
+                $html.='<td style="text-align:center"><strong>Total</strong></td>'; 
+                $html.='<td style="text-align:center"><strong>Porcentaje</strong></td>'; 
+            $html.='</tr>';
+            $html.='<tr>';
+                $html.='<td style="text-align:right">'.number_format($Totales["preventivo"]["total_parada"],2).'</td>'; 
+                $html.='<td style="text-align:right">'.number_format($TotalParadas,2).'</td>'; 
+                $html.='<td style="text-align:right">'.number_format($porcentaje_paradas_preventivas,2).' %</td>'; 
+                $html.='<td style="text-align:right">'.number_format($Totales["correctivo"]["total_parada"],2).'</td>'; 
+                $html.='<td style="text-align:right">'.number_format($TotalParadas,2).'</td>'; 
+                $html.='<td style="text-align:right">'.number_format($porcentaje_paradas_correctivas,2).' %</td>'; 
+            $html.='</tr>';
+            
+            //Tiempos de parada
+            $html.='<tr>';
+                $html.='<th colspan="6" style="text-align:center"><strong>Costos de Mantenimiento</strong></th>';            
+            $html.='</tr>';
+            $html.='<tr>';
+                $html.='<th colspan="3" style="text-align:center"><strong>Preventivas</strong></th>'; 
+                $html.='<th colspan="3" style="text-align:center"><strong>Correctivas</strong></th>'; 
+            $html.='</tr>';
+            $html.='<tr>';
+                $html.='<td style="text-align:center"><strong>Cantidad</strong></td>'; 
+                $html.='<td style="text-align:center"><strong>Total</strong></td>'; 
+                $html.='<td style="text-align:center"><strong>Porcentaje</strong></td>'; 
+                $html.='<td style="text-align:center"><strong>Cantidad</strong></td>'; 
+                $html.='<td style="text-align:center"><strong>Total</strong></td>'; 
+                $html.='<td style="text-align:center"><strong>Porcentaje</strong></td>'; 
+            $html.='</tr>';
+            $html.='<tr>';
+                $html.='<td style="text-align:right">'.number_format($Totales["preventivo"]["total_costos"],2).'</td>'; 
+                $html.='<td style="text-align:right">'.number_format($TotalCostos,2).'</td>'; 
+                $html.='<td style="text-align:right">'.number_format($porcentaje_costos_preventivas,2).' %</td>'; 
+                $html.='<td style="text-align:right">'.number_format($Totales["correctivo"]["total_costos"],2).'</td>'; 
+                $html.='<td style="text-align:right">'.number_format($TotalCostos,2).'</td>'; 
+                $html.='<td style="text-align:right">'.number_format($porcentaje_costos_correctivas,2).' %</td>'; 
+            $html.='</tr>';
+            
+        $html.='</table>';
+        
+        return($html);
+    }
+    
+    public function indicadores_mantenimiento_pdf($empresa_id,$Condicion,$rango) {
+        
+        $DatosEmpresa=$this->obCon->DevuelveValores("empresapro", "ID", $empresa_id);
+        $db=$DatosEmpresa["db"];
+        
+        $idFormato=3001;
+        $DatosFormato=$this->obCon->DevuelveValores("formatos_calidad", "ID", $idFormato);
+        $Documento=$rango;
+        $this->PDF_Ini($Documento, 8, "");
+        $this->PDF_Encabezado(date("Y-m-d"),1, $idFormato, "",$Documento,$DatosEmpresa);
+        $html= $this->html_indicadores_gestion($db, $Condicion);        
+        $this->PDF_Write("<br><br><br><br><br><br><br><br><br><br>".$html);
+        
+        $html= $this->FirmasIndicadores();        
+        $this->PDF_Write("<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>".$html);
+        
+        $this->PDF_Output("Indicadores_$rango");
+         
+    }
    
+    public function FirmasIndicadores() {
+        
+        
+        $tbl='<table cellspacing="0" cellpadding="2" border="1">';
+            $tbl.='<tr>';
+                $tbl.='<th>';
+                    $tbl.='<strong>Presenta:</strong><br>';
+                    $tbl.='<br><br><br>';
+                                        
+                $tbl.='</th>';
+                $tbl.='<th>';
+                    $tbl.='<strong>Recibe:</strong><br>';
+                    
+                    $tbl.='<br><br><br>';
+                    
+                $tbl.='</th>';
+            $tbl.='</tr>';  
+        $tbl.='</table>'; 
+        return($tbl);
+    }
    //Fin Clases
 }
     
