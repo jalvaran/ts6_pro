@@ -192,7 +192,7 @@ if( !empty($_REQUEST["Accion"]) ){
                                 
                                 print('<tr>');
                                     print("<td style='text-align:center'>");
-                                        $link="../../general/Consultas/PDF_Documentos.draw.php?idDocumento=1&empresa_id=1&id=$idItem";
+                                        $link="../../general/Consultas/PDF_Documentos.draw.php?idDocumento=1&empresa_id=$empresa_id&id=$idItem";
                                         print('<a style="font-size:25px;color:green" href="'.$link.'" target="_blank" title="Ver PDF" title="Ver PDF" ><i class="far fa-file-pdf text-error"></i></a>');
                                     print("</td>");
                                     print("<td style='text-align:center'>");
