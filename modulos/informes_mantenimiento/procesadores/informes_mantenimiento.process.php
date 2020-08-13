@@ -53,6 +53,17 @@ if( !empty($_REQUEST["Accion"]) ){
             $obExcel->excel_maquinas_fallas($empresa_id,$Condicion);
             
         break;//Fin caso 4
+    
+        case 5://Exporta la disponibilidad de las maquinas
+            include_once '../clases/excel_informes_mantenimientos.class.php';
+            $Condicion=($_REQUEST['c']);            
+            $Condicion= urldecode(base64_decode($Condicion));
+            $empresa_id=$obCon->normalizar($_REQUEST['empresa_id']);
+            $horas_disponibilidad_total=$obCon->normalizar($_REQUEST['horas_disponibilidad_total']);
+            $obExcel=new ExcelInformesMantenimiento($idUser);            
+            $obExcel->excel_disponibilidad_maquinas($empresa_id,$Condicion,$horas_disponibilidad_total);
+            
+        break;//Fin caso 5
         
         
         

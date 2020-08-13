@@ -1,7 +1,7 @@
 <?php
 /**
- * Pagina para realizar el analisis de las fallas
- * 2020-07-27, Julian Alvaran Techno Soluciones SAS
+ * Pagina para crear y ejecutar las ordenes de mantenimiento
+ * 2020-07-09, Julian Alvaran Techno Soluciones SAS
  * 
  * es recomendable No usar los siguientes ID para ningún objeto:
  * FrmModal, ModalAcciones,DivFormularios,BtnModalGuardar,DivOpcionesTablas,
@@ -15,7 +15,7 @@ $urlRequest= explode("/", $urlRequest);
 $Pagina=end($urlRequest);
 
 $myPage=$Pagina;
-$myTitulo="Análisis de las fallas";
+$myTitulo="Rutinas";
 include_once("../../sesiones/php_control_usuarios.php");
 include_once("../../constructores/paginas_constructor.php");
 
@@ -47,7 +47,7 @@ $css->PageInit($myTitulo);
                         <div class="panel-title">
                             
                             <i class="fa fa-warehouse panel-head-icon font-24"></i>
-                            <span class="panel-title-text">Análisis de fallas: </span>  
+                            <span class="panel-title-text">Rutinas: </span>  
                             <div class="row">
                             <div class="col-md-4">
                                 ');
@@ -66,29 +66,13 @@ $css->PageInit($myTitulo);
             }
         $css->Cselect();
         
-        
         $css->select("listado_id", "form-control btn-pill", "listado_id", "", "", "", "");
             
-                        
             $css->option("", "", "", 1, "", "");
-                print("Listado general de fallas");
+                print("Ordenes de trabajo");
             $css->Coption();
-            $css->option("", "", "", 2, "", "");
-                print("Fallas mas frecuentes");
-            $css->Coption();
-            
-            $css->option("", "", "", 3, "", "");
-                print("Máquinas que mas fallan");
-            $css->Coption();
-          
-            $css->option("", "", "", 4, "", "");
-                print("Disponibilidad de las Maquinas");
-            $css->Coption();
-            
             
         $css->Cselect();
-        
-        
         
         print('         </div>
             
@@ -116,22 +100,35 @@ $css->PageInit($myTitulo);
                         
                         ');
         print('<div class="col-md-4">');
-            $css->select("unidad_negocio_id", "form-control btn-pill", "unidad_negocio_id", "", "", "", "");
-                
-                $css->option("", "", "", "", "", "");
-                    print("Todas las Unidades unidades de negocio");
+        $sql="SELECT * FROM ordenes_trabajo_tipo_mantenimiento";
+        $Consulta=$obCon->Query($sql);
+        $css->select("cmb_tipo_mantenimiento", "form-control", "cmb_tipo_mantenimiento", "", "", "", "");
+            
+            
+            while($DatosConsulta=$obCon->FetchAssoc($Consulta)){
+                if($DatosConsulta["ID"]==3){
+                    $css->option("", "", "", $DatosConsulta["ID"], "", "");
+                        print($DatosConsulta["tipo_mantenimiento"]);
+                    $css->Coption();
+                }
+            }
+            
+        $css->Cselect();
+        
+        $sql="SELECT * FROM ordenes_trabajo_estados";
+        $Consulta=$obCon->Query($sql);
+        $css->select("cmb_estado", "form-control", "cmb_estado", "", "", "", "");
+            $css->option("", "", "", "", "", "");
+                print("Todos los estados");
+            $css->Coption();
+            
+            while($DatosConsulta=$obCon->FetchAssoc($Consulta)){
+                $css->option("", "", "", $DatosConsulta["ID"], "", "");
+                    print($DatosConsulta["nombre_estado"]);
                 $css->Coption();
-                    
-                
-            $css->Cselect();
-            $css->select("proceso_id", "form-control btn-pill", "proceso_id", "", "", "", "");
-                
-                $css->option("", "", "", "", "", "");
-                    print("Todos los procesos de la empresa");
-                $css->Coption();
-                    
-                
-            $css->Cselect();
+            }
+            
+        $css->Cselect();
         print('</div>');
         
         print('        
@@ -139,7 +136,7 @@ $css->PageInit($myTitulo);
                         </div>
                         <div class="panel-action panel-action-background">
                             
-                            
+                            <button id="btnFrmNuevoRegistro" class="btn btn-primary btn-gradient btn-pill m-1">Crear <i class="fa fa-plus-circle"></i></button>
                             <button id="btnActualizarListado" class="btn btn-success btn-gradient btn-pill m-1"><i class="fa fa-sync"></i></button>
 
                         </div>  
@@ -157,7 +154,7 @@ $css->PageInit($myTitulo);
     $css->Cdiv();
        
 $css->PageFin();
-print('<script src="jsPages/analisis_fallas.js"></script>'); 
+print('<script src="jsPages/mantenimiento.js"></script>'); 
 $css->Cbody();
 $css->Chtml();
 

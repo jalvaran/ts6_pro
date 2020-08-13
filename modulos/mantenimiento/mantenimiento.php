@@ -136,7 +136,7 @@ $css->PageInit($myTitulo);
                         </div>
                         <div class="panel-action panel-action-background">
                             
-                            <button id="btnFrmNuevoRegistro" class="btn btn-primary btn-gradient btn-pill m-1">Crear <i class="fa fa-plus-circle"></i></button>
+                            
                             <button id="btnActualizarListado" class="btn btn-success btn-gradient btn-pill m-1"><i class="fa fa-sync"></i></button>
 
                         </div>  

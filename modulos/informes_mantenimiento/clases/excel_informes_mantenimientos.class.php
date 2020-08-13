@@ -395,6 +395,105 @@ class ExcelInformesMantenimiento extends Excel{
    
     }
     
+    public function excel_disponibilidad_maquinas($empresa_id,$Condicion,$horas_disponibilidad_total) {
+        require_once('../../../librerias/Excel/PHPExcel2.php');
+        $DatosEmpresa=$this->DevuelveValores("empresapro", "ID", $empresa_id);
+        $db=$DatosEmpresa["db"];
+    
+        $objPHPExcel = new Spreadsheet();
+        $objPHPExcel->getActiveSheet()->getStyle('E:H')->getNumberFormat()->setFormatCode('#,##0');
+        $styleTitle = [
+            'font' => [
+                'bold' => true,
+                'size' => 12
+            ]
+            
+        ];
+                
+        $Campos=["A","B","C","D","E","F","G","H","I","J","K","L","M",
+                 "N","O","P","Q","R","S","T","U","V","W","X","Y","Z","AA","AB"];
+        
+        $objPHPExcel->setActiveSheetIndex(0)
+            ->setCellValue("A1","DISPONIBILIDAD DE LAS MAQUINAS")
+             
+                ;
+        $objPHPExcel->setActiveSheetIndex(0)->mergeCells('A1:H1');
+        
+        $objPHPExcel->getActiveSheet()->getStyle('A3:H3')->applyFromArray($styleTitle);
+        $objPHPExcel->getActiveSheet()->getStyle('A1:H1')->applyFromArray($styleTitle);
+        $z=0;
+        $i=3;
+        $objPHPExcel->setActiveSheetIndex(0)
+               
+            
+            ->setCellValue($Campos[$z++].$i,"Maquina")
+            ->setCellValue($Campos[$z++].$i,"Ubicacion")
+            ->setCellValue($Campos[$z++].$i,"Disponibilidad ideal (Horas)")
+            ->setCellValue($Campos[$z++].$i,"Tiempo de parada (Horas)")
+            ->setCellValue($Campos[$z++].$i,"Disponibilidad de la máquina (%)")    
+            ->setCellValue($Campos[$z++].$i,"Unidad de Negocio")
+            ->setCellValue($Campos[$z++].$i,"Proceso")
+            
+            ;
+        $tabla="vista_ordenes_trabajo_fallas";
+        
+        $sql="SELECT sum(t1.tiempo_parada) as total_parada,
+                  nombre_maquina,nombre_ubicacion,nombre_unidad_negocio,nombre_proceso  
+                    
+                  FROM $db.$tabla t1 $Condicion GROUP BY maquina_id  ORDER BY total_parada DESC ";
+        $Consulta=$this->Query($sql);
+        $i=3;
+        while($DatosVista= $this->FetchAssoc($Consulta)){
+            $disponibilidad=round((($horas_disponibilidad_total-$DatosVista["total_parada"])/$horas_disponibilidad_total)*100,2);
+            $i++;
+            $z=0;
+            $objPHPExcel->setActiveSheetIndex(0)
+
+                ->setCellValue($Campos[$z++].$i,$DatosVista["nombre_maquina"])
+                ->setCellValue($Campos[$z++].$i,$DatosVista["nombre_ubicacion"])
+                ->setCellValue($Campos[$z++].$i,$horas_disponibilidad_total)
+                ->setCellValue($Campos[$z++].$i,$DatosVista["total_parada"])
+                ->setCellValue($Campos[$z++].$i,$disponibilidad."%")
+                ->setCellValue($Campos[$z++].$i,$DatosVista["nombre_unidad_negocio"])
+                ->setCellValue($Campos[$z++].$i,$DatosVista["nombre_proceso"])
+                
+                ;
+            
+        }
+        
+        
+        $objPHPExcel->getActiveSheet()->getStyle("A3:H3")->getAlignment()->setWrapText(true);
+        $objPHPExcel->getActiveSheet()->getColumnDimensionByColumn(1)->setWidth('40');
+        $objPHPExcel->getActiveSheet()->getColumnDimensionByColumn(2)->setWidth('40');
+        $objPHPExcel->getActiveSheet()->getColumnDimensionByColumn(3)->setWidth('20');
+        $objPHPExcel->getActiveSheet()->getColumnDimensionByColumn(4)->setWidth('15');
+        $objPHPExcel->getActiveSheet()->getColumnDimensionByColumn(5)->setWidth('17');
+        $objPHPExcel->getActiveSheet()->getColumnDimensionByColumn(6)->setWidth('20');
+        $objPHPExcel->getActiveSheet()->getColumnDimensionByColumn(7)->setWidth('40');
+        
+        
+   //Informacion del excel
+   $objPHPExcel->
+    getProperties()
+        ->setCreator("www.technosoluciones.com.co")
+        ->setLastModifiedBy("www.technosoluciones.com.co")
+        ->setTitle("Maquinas que mas fallan")
+        ->setSubject("Informes")
+        ->setDescription("Documento generado por Techno Soluciones SAS")
+        ->setKeywords("techno soluciones sas")
+        ->setCategory("Informes");    
+ 
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header('Content-Disposition: attachment;filename="'."listado_general_fallas".'.xls"');
+    header('Cache-Control: max-age=0');
+    header('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+    header('Pragma: public'); // HTTP/1.0
+    $objWriter=IOFactory::createWriter($objPHPExcel,'Xlsx');
+    $objWriter->save('php://output');
+    exit; 
+   
+    }
+    
         
    //Fin Clases
 }

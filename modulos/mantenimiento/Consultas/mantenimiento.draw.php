@@ -278,11 +278,12 @@ if( !empty($_REQUEST["Accion"]) ){
         
         case 2: //Dibuja el formulario para crear o editar una orden de trabajo
             $empresa_id=$obCon->normalizar($_REQUEST["empresa_id"]);
+            $cmb_tipo_mantenimiento=$obCon->normalizar($_REQUEST["cmb_tipo_mantenimiento"]);
             $DatosEmpresa=$obCon->ValorActual("empresapro", "db", " ID='$empresa_id'");
             $db=$DatosEmpresa["db"];
             $edit_id=$obCon->normalizar($_REQUEST["edit_id"]);
                 
-            $css->frm_form_orden_mantenimiento($db,$edit_id);
+            $css->frm_form_orden_mantenimiento($db,$edit_id,$cmb_tipo_mantenimiento);
         break; //Fin caso 2
     
         case 3: //Dibuja las tareas en una orden de trabajo

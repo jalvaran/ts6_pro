@@ -414,12 +414,14 @@ function frm_crear_editar_registro(edit_id=''){
     var idDiv="DivListado";
     var empresa_id=document.getElementById('empresa_id').value;
     var listado_id=document.getElementById('listado_id').value;
+    var cmb_tipo_mantenimiento=document.getElementById('cmb_tipo_mantenimiento').value;
     urlQuery='Consultas/mantenimiento.draw.php';    
     var form_data = new FormData();
         form_data.append('Accion', 2);  
         form_data.append('edit_id', edit_id);
         form_data.append('listado_id', listado_id);
         form_data.append('empresa_id', empresa_id);
+        form_data.append('cmb_tipo_mantenimiento', cmb_tipo_mantenimiento);
        $.ajax({// se arma un objecto por medio de ajax  
         url: urlQuery,// se indica donde llegara la informacion del objecto
         

@@ -2432,10 +2432,10 @@ class PageConstruct extends html_estruct_class{
         }
         
         
-        function frm_form_orden_mantenimiento($db,$idEdit){
+        function frm_form_orden_mantenimiento($db,$idEdit,$cmb_tipo_mantenimiento){
             $tab=$db.".ordenes_trabajo";
             $DatosOrden=$this->obCon->DevuelveValores($tab, "ID", $idEdit);
-            
+            $DatosOrden["tipo_mantenimiento"]=$cmb_tipo_mantenimiento;
             $orden_trabajo_id=$DatosOrden["orden_trabajo_id"];
             if($orden_trabajo_id==''){
                 $orden_trabajo_id= $this->obCon->getUniqId("ot_");
@@ -2459,19 +2459,16 @@ class PageConstruct extends html_estruct_class{
                                     $sql="SELECT * FROM ordenes_trabajo_tipo_mantenimiento";
                                     $Consulta=$this->obCon->Query($sql);
                                     $this->select("orden_tabajo_tipo_id", "form-control", "orden_tabajo_tipo_id", "", "", "", "");
-                                        $this->option("", "", "", "", "", "");
-                                            print("Seleccione un tipo de mantenimiento");
-                                        $this->Coption();
-
+                                        
                                         while($DatosConsulta=$this->obCon->FetchAssoc($Consulta)){
-                                            $sel=0;
-                                            if($DatosOrden["tipo_mantenimiento"]==$DatosConsulta["ID"]){
-                                                $sel=1;
+                                            //$sel=0;
+                                            if($DatosConsulta["ID"]==$cmb_tipo_mantenimiento){
+                                                $this->option("", "", "", $DatosConsulta["ID"], "", "",1);
+                                                    print($DatosConsulta["tipo_mantenimiento"]);
+                                                $this->Coption();
                                             }
                                             
-                                            $this->option("", "", "", $DatosConsulta["ID"], "", "",$sel);
-                                                print($DatosConsulta["tipo_mantenimiento"]);
-                                            $this->Coption();
+                                            
                                         }
 
                                     $this->Cselect();

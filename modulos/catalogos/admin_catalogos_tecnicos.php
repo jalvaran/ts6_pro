@@ -56,25 +56,21 @@ $css->PageInit($myTitulo);
         
         $css->select("catalogo_id", "form-control btn-pill", "catalogo_id", "", "", "", "");
             
-            $css->option("", "", "", 5, "", "");
-                print("Unidades de negocio");
+            
+            
+            $css->option("", "", "", 6, "", "");
+                print("Tipo de Tareas");
             $css->Coption();
             
-            $css->option("", "", "", 1, "", "");
-                print("Procesos");
-            $css->Coption();
-            
-            $css->option("", "", "", 2, "", "");
-                print("Ubicaciones o Secciones");
-            $css->Coption();
-            
-            
-            
-            $css->option("", "", "", 4, "", "");
-                print("Técnicos");
+            $css->option("", "", "", 3, "", "");
+                print("Tareas");
             $css->Coption();
             
             
+            
+            $css->option("", "", "", 7, "", "");
+                print("Rutinas");
+            $css->Coption();
             
         $css->Cselect();
         
